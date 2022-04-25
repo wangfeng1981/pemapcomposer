@@ -25,6 +25,7 @@ import './panels.css';
 /// props.onAddImage
 /// props.onPageDirection('h'/'v') 
 /// props.onQuit
+/// props.currentPageDirection
 function McMainToolbarPanel(props) {
 
     const buttonClickHandle = function () {
@@ -124,6 +125,7 @@ function McMainToolbarPanel(props) {
                             <option>纸张:A4</option>
                         </select>
                         <select className="form-select-sm"
+                        value={props.currentPageDirection}
                         onChange={(e)=>props.onPageDirection(e.target.value)}
                         >
                             <option value='h' >横向</option>

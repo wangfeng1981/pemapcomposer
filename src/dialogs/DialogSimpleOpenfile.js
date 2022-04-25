@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import BoDialogSimple from './BoDialogSimple';
-import { Container, Button, Card, Row, Col, Form,Image  } from 'react-bootstrap';
+import { Container, Button, Card, Row, Col, Form, Image, Table } from 'react-bootstrap';
 
 
 
@@ -18,20 +18,20 @@ function DialogSimpleOpenfile(props) {
     const [selectedIndex, setSelectedIndex] = useState(-1);
 
 
-    const refreshFileList = function() {
+    const refreshFileList = function () {
         let url1 = global.g_task17apiroot +
-        "omc/filelist?uid=" + props.uid + "&type=" + props.type;
+            "omc/filelist?uid=" + props.uid + "&type=" + props.type;
         fetch(url1)  //GET
-        .then(response => response.json())
-        .then(result => {
-            if (result.state === 0) {
-                setFileArray(result.data);
-            } else {
-                props.appendErrorMsg(result.message);
-            }
-        }).catch(err => {
-            console.log(err);// 505 404 ... errors
-        });
+            .then(response => response.json())
+            .then(result => {
+                if (result.state === 0) {
+                    setFileArray(result.data);
+                } else {
+                    props.appendErrorMsg(result.message);
+                }
+            }).catch(err => {
+                console.log(err);// 505 404 ... errors
+            });
     }
 
     useEffect(() => {
@@ -42,70 +42,93 @@ function DialogSimpleOpenfile(props) {
         } else if (props.type === 3) {
             setTheTitle("添加矢量图层");
         }
-        refreshFileList() ;
+        refreshFileList();
     }, [props.type, props.isOpen, props.uid]);
 
     const onUploadImage = function (ev) {
-        console.log("uploading image") ;
-        ev.preventDefault() ;
-        if( ev.target[0].files.length === 0 ) return;
-        let formData = new FormData ;
-        formData.append("uid" , props.uid ) ;
-        formData.append("files" , ev.target[0].files[0] ) ;
+        console.log("uploading image");
+        ev.preventDefault();
+        if (ev.target[0].files.length === 0) return;
+        let formData = new FormData;
+        formData.append("uid", props.uid);
+        formData.append("files", ev.target[0].files[0]);
         const url = global.g_task17apiroot + "omc/uploadimg"
-    	fetch(
-    		url,
-    		{
-    			method: 'POST',
-    			body: formData,
-    		}
-    	)
-    	.then((response) => response.json())
-    	.then((result) => {
-            if( result.state===0 ){
-                const relfilename = result.data ;
-                console.log(relfilename) ;
-                refreshFileList() ;
-            }else{
-                console.log(result) ;
+        fetch(
+            url,
+            {
+                method: 'POST',
+                body: formData,
             }
-    	}).catch(err=>{
-            console.log(err) ;
-        }) ;
+        )
+            .then((response) => response.json())
+            .then((result) => {
+                if (result.state === 0) {
+                    const relfilename = result.data;
+                    console.log(relfilename);
+                    refreshFileList();
+                } else {
+                    console.log(result);
+                }
+            }).catch(err => {
+                console.log(err);
+            });
     }
 
 
     const onUploadVector = function (ev) {
-        console.log("uploading vector") ;
-        ev.preventDefault() ;
-        if( ev.target[0].files.length !== 4 ) return;
-        let formData = new FormData ;
-        formData.append("uid" , props.uid ) ;
-        formData.append("files" , ev.target[0].files[0] ) ;
-        formData.append("files" , ev.target[0].files[1] ) ;
-        formData.append("files" , ev.target[0].files[2] ) ;
-        formData.append("files" , ev.target[0].files[3] ) ;
+        console.log("uploading vector");
+        ev.preventDefault();
+        if (ev.target[0].files.length !== 4) return;
+        let formData = new FormData;
+        formData.append("uid", props.uid);
+        formData.append("files", ev.target[0].files[0]);
+        formData.append("files", ev.target[0].files[1]);
+        formData.append("files", ev.target[0].files[2]);
+        formData.append("files", ev.target[0].files[3]);
         const url = global.g_task17apiroot + "omc/uploadshp"
-    	fetch(
-    		url,
-    		{
-    			method: 'POST',
-    			body: formData,
-    		}
-    	)
-    	.then((response) => response.json())
-    	.then((result) => {
-            if( result.state===0 ){
-                const relfilename = result.data ;
-                console.log(relfilename) ;
-                refreshFileList() ;
-            }else{
-                console.log(result) ;
+        fetch(
+            url,
+            {
+                method: 'POST',
+                body: formData,
             }
-    	}).catch(err=>{
-            console.log(err) ;
-        }) ;
+        )
+            .then((response) => response.json())
+            .then((result) => {
+                if (result.state === 0) {
+                    const relfilename = result.data;
+                    console.log(relfilename);
+                    refreshFileList();
+                } else {
+                    console.log(result);
+                }
+            }).catch(err => {
+                console.log(err);
+            });
 
+    }
+
+    const onDeleteClick = function (item){
+        let formData = new FormData;
+        formData.append("omcid", item.omcid);
+        const url = global.g_task17apiroot + "omc/delfile"
+        fetch(
+            url,
+            {
+                method: 'POST',
+                body: formData,
+            }
+        )
+            .then((response) => response.json())
+            .then((result) => {
+                if (result.state === 0) {
+                    refreshFileList();
+                } else {
+                    console.log(result);
+                }
+            }).catch(err => {
+                console.log(err);
+            });
     }
 
 
@@ -143,13 +166,13 @@ function DialogSimpleOpenfile(props) {
                                     <Form.Label>上传ESRI Shape文件(*.shp,*.shx,*.prj,*.dbf)</Form.Label>
                                     <Row>
                                         <Col >
-                                            <Form.Control type="file" multiple  name="files" />
+                                            <Form.Control type="file" multiple name="files" />
                                         </Col>
                                         <Col sm="2">
                                             <Button
-                                            size="md" 
-                                            variant="outline-secondary"
-                                            type="submit"
+                                                size="md"
+                                                variant="outline-secondary"
+                                                type="submit"
                                             >
                                                 上传</Button>
                                         </Col>
@@ -161,59 +184,64 @@ function DialogSimpleOpenfile(props) {
                     }
 
                 </div>
-                <Container>
+                <Table striped bordered hover><tbody>
                     {
                         fileArray.map((item, index) => (
-                            <Row key={'key' + index}
+                            <tr key={'key' + index}
                                 onClick={() => setSelectedIndex(index)}
-                                className={
-                                    (index === selectedIndex) ? "FileRow Active" : "FileRow "
-                                }
                             >
                                 {
-                                    (props.type===2)?(
-                                        <Col sm="1">
-                                            <Image thumbnail 
-                                            width="64"
-                                            src={global.g_staticRootUrl+item.file}
+                                    (props.type === 2) ? (
+                                        <td sm="1">
+                                            <Image thumbnail
+                                                width="64"
+                                                src={global.g_staticRootUrl + item.file}
                                             />
-                                        </Col>
-                                    ):""
+                                        </td>
+                                    ) : ""
                                 }
                                 {
-                                    (props.type===3)?(
-                                        <Col sm="1">
+                                    (props.type === 3) ? (
+                                        <td sm="1">
                                             {
-                                                (item.type2===1)?(
+                                                (item.type2 === 1) ? (
                                                     <Image width="32" src="./images/mc/vec-point.png" />
-                                                ):""
+                                                ) : ""
                                             }
                                             {
-                                                (item.type2===2)?(
+                                                (item.type2 === 2) ? (
                                                     <Image width="32" src="./images/mc/vec-line.png" />
-                                                ):""
+                                                ) : ""
                                             }
                                             {
-                                                (item.type2===3)?(
+                                                (item.type2 === 3) ? (
                                                     <Image width="32" src="./images/mc/vec-poly.png" />
-                                                ):""
+                                                ) : ""
                                             }
-                                            
-                                        </Col>
-                                    ):""
+
+                                        </td>
+                                    ) : ""
                                 }
-                                <Col>
+                                <td>
                                     {item.name}
-                                </Col>
-                                <Col md="auto">
-                                    <Button size="sm" >
+                                </td>
+                                <td width={100}>
+                                    <Button size="sm" variant="outline-danger"
+                                    onClick={()=>onDeleteClick(item)}
+                                    >
                                         删除
                                     </Button>
-                                </Col>
-                            </Row>
+                                    {
+                                        (selectedIndex === index) ? (
+                                            <img
+                                                src="./images/mc/check.png"
+                                                width="16" height="16" />) : ""
+                                    }
+                                </td>
+                            </tr>
                         ))
                     }
-                </Container>
+                </tbody></Table>
             </>
 
         )
@@ -222,17 +250,16 @@ function DialogSimpleOpenfile(props) {
 
 
     const onCancel = function () {
-        setSelectedIndex(-1) ;
-        setFileArray([]) ;
+        setSelectedIndex(-1);
+        setFileArray([]);
         props.onCancel();
     }
 
     const onOk = function () {
-        if( selectedIndex >=0 && selectedIndex < fileArray.length )
-        {
-            props.onOk(props.type , fileArray[selectedIndex].file , fileArray[selectedIndex].name );
-            setSelectedIndex(-1) ;
-        }        
+        if (selectedIndex >= 0 && selectedIndex < fileArray.length) {
+            props.onOk(props.type, fileArray[selectedIndex].file, fileArray[selectedIndex].name);
+            setSelectedIndex(-1);
+        }
     }
 
 

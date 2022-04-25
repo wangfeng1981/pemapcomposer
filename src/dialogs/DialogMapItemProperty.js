@@ -17,35 +17,46 @@ import LabelProperty from '../components/LabelProperty';
 //callOmcRpc 
 //appendErrorMsg 
 //regenerateProjectPartsAndRedrawCanvas
+//projectObject
 function DialogMapItemProperty(props) {
 
     const [theTitle, setTheTitle] = useState("地图元素属性");
     const [currObject, setCurrObject] = useState(props.theObject);
+    const [crsArray, setCrsArray] = useState([]);
 
     useEffect(() => {
         setCurrObject(props.theObject);
 
     }, [props.theObject]);// layoutitem
 
+
+    useEffect(() => {
+        if (typeof props.projectObject !== 'undefined' && props.projectObject !== null) {
+            setCrsArray(props.projectObject.crs_array);
+        }
+    }, [props.projectObject])
+
+
+
     const onOk = function () {
 
-        if( typeof currObject === 'undefined'|| currObject===null) return ;
+        if (typeof currObject === 'undefined' || currObject === null) return;
 
-        let jsondata = {...currObject} ;
-        jsondata.file = props.projectQgsFile ;
-        jsondata.uuid = currObject.layoutitem.uuid ;
-        jsondata.loitype= currObject.layoutitem.loitype ; 
-        console.log("item.setproperty") ;
-        console.log(jsondata) ;
+        let jsondata = { ...currObject };
+        jsondata.file = props.projectQgsFile;
+        jsondata.uuid = currObject.layoutitem.uuid;
+        jsondata.loitype = currObject.layoutitem.loitype;
+        console.log("item.setproperty");
+        console.log(jsondata);
 
-        props.callOmcRpc("item.setproperty" , jsondata, 
-		function(res){
-			//ok
-			props.regenerateProjectPartsAndRedrawCanvas() ;
-            props.onOk() ;
-		}, function(err){
-			props.appendErrorMsg(err) ;
-		}) ;
+        props.callOmcRpc("item.setproperty", jsondata,
+            function (res) {
+                //ok
+                props.regenerateProjectPartsAndRedrawCanvas();
+                props.onOk();
+            }, function (err) {
+                props.appendErrorMsg(err);
+            });
     }
 
     const onCancel = function () {
@@ -68,15 +79,21 @@ function DialogMapItemProperty(props) {
     }
 
 
-    const onChangePolyStyle = function(obj){
-        let newobj = {...currObject} ;
-        newobj.data.polysymbol = obj ;
-        setCurrObject(newobj) ;
+    const onChangePolyStyle = function (obj) {
+        let newobj = { ...currObject };
+        newobj.data.polysymbol = obj;
+        setCurrObject(newobj);
     }
 
-    const onChangeLabel = function(obj){
+    const onChangeLabel = function (obj) {
+        let newobj = { ...currObject };
+        newobj.data = obj;
+        setCurrObject(newobj);
+    }
+
+    const onChangedCrs = function (ev) {
         let newobj = {...currObject} ;
-        newobj.data = obj ;
+        newobj.data.authid = ev.target.value ;
         setCurrObject(newobj) ;
     }
 
@@ -85,7 +102,7 @@ function DialogMapItemProperty(props) {
         return (
             <Table>
                 {
-                    (typeof currObject === 'undefined' || currObject===null ) ? "currObject undefined." : (
+                    (typeof currObject === 'undefined' || currObject === null) ? "currObject undefined." : (
                         <tbody>
                             {
                                 (currObject !== null) ? <LayoutItemPropery
@@ -96,26 +113,44 @@ function DialogMapItemProperty(props) {
                             {
                                 (currObject !== null && currObject.layoutitem.loitype === 'map') ? (
                                     <MapGrid theObject={currObject.grid}
-                                    onChange={onChangeGrid}
+                                        onChange={onChangeGrid}
                                     />
+                                ) : ""
+                            }
+                            {
+                                (currObject !== null && currObject.layoutitem.loitype === 'map') ? (
+                                    <tr>
+                                        <td>坐标系</td>
+                                        <td>
+                                            <select className="form-select" 
+                                            value={currObject.data.authid} onChange={onChangedCrs} >
+                                                {
+                                                    crsArray.map((crsitem,index) => (
+                                                        <option key={'key'+index} value={crsitem.authid}>{crsitem.crsdescription}</option>
+                                                    )
+                                                    )
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
                                 ) : ""
                             }
                             {
                                 (currObject !== null &&
                                     (currObject.layoutitem.loitype === 'ell'
-                                    || currObject.layoutitem.loitype === 'rect' )
-                                     ) ? (
+                                        || currObject.layoutitem.loitype === 'rect')
+                                ) ? (
                                     <PolyStyle theObject={currObject.data.polysymbol}
-                                    onChange={onChangePolyStyle}
+                                        onChange={onChangePolyStyle}
                                     />
                                 ) : ""
                             }
                             {
                                 (currObject !== null &&
                                     (currObject.layoutitem.loitype === 'label')
-                                     ) ? (
+                                ) ? (
                                     <LabelProperty theObject={currObject.data}
-                                    onChange={onChangeLabel}
+                                        onChange={onChangeLabel}
                                     />
                                 ) : ""
                             }

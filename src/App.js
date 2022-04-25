@@ -23,14 +23,26 @@ import DialogExport from './dialogs/DialogExport';
 
 
 global.g_version = "v0.1.0";
-global.g_version = "v0.1.1";
+global.g_version = "v0.1.1";//2022-4-25
+global.g_version = "v0.1.1tx";// 2022-4-25
+global.g_version = "v0.1.2";// 2022-4-26 map crs 
+
 
 //192.168.56.103:15911/
 global.g_task17apiroot = "http://192.168.56.103:15900/pe/";
 global.g_omcApi = "http://192.168.56.103:15911/";
-
 //http://192.168.56.103:15980/omc_res/firefox.png 静态资源网址样例
 global.g_staticRootUrl = "http://192.168.56.103:15980/";
+
+//tencent cloud 
+//omc api http://124.220.3.186:15911/
+//task17 api http://124.220.3.186:8080/api/pe/user/login
+//static res http://124.220.3.186:8080/images/login_inner_frame.png
+//global.g_task17apiroot = "http://124.220.3.186:8080/api/pe/";
+//global.g_omcApi = "http://124.220.3.186:15911/";
+//global.g_staticRootUrl = "http://124.220.3.186:8080/" ;
+
+
 
 //A4 297x210mm x4     1188x840px  , dpi72 841x595
 //A4 Portait   x2.83  595x841px     dpi72 595x841 
@@ -1068,6 +1080,7 @@ function App() {
 				callOmcRpc={callOmcRpc}
 				appendErrorMsg={appendErrorMsg}
 				regenerateProjectPartsAndRedrawCanvas={regenerateProjectPartsAndRedrawCanvas}
+				projectObject={projectObject}
 			/>
 
 

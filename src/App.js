@@ -26,12 +26,14 @@ global.g_version = "v0.1.0";
 global.g_version = "v0.1.1";//2022-4-25
 global.g_version = "v0.1.1tx";// 2022-4-25
 global.g_version = "v0.1.2";// 2022-4-26 map crs 
+global.g_version = "v0.1.2r-qh";//2022-4-26
+global.g_version = "v0.1.3r"; //2022-4-27 fix mapitem resize with grid
 
 
-//192.168.56.103:15911/
+// API 样例 192.168.56.103:15911/
+// http://192.168.56.103:15980/omc_res/firefox.png 静态资源网址样例
 global.g_task17apiroot = "http://192.168.56.103:15900/pe/";
 global.g_omcApi = "http://192.168.56.103:15911/";
-//http://192.168.56.103:15980/omc_res/firefox.png 静态资源网址样例
 global.g_staticRootUrl = "http://192.168.56.103:15980/";
 
 //tencent cloud 
@@ -42,6 +44,11 @@ global.g_staticRootUrl = "http://192.168.56.103:15980/";
 //global.g_omcApi = "http://124.220.3.186:15911/";
 //global.g_staticRootUrl = "http://124.220.3.186:8080/" ;
 
+//气候中心 use 8280 as front-function
+// global.g_task17apiroot = "http://10.10.30.81:8180/api/pe/";
+// global.g_omcApi =        "http://10.10.30.81:15911/";
+// global.g_staticRootUrl = "http://10.10.30.81:8180/" ;
+
 
 
 //A4 297x210mm x4     1188x840px  , dpi72 841x595
@@ -49,11 +56,16 @@ global.g_staticRootUrl = "http://192.168.56.103:15980/";
 global.g_dpi72toCanvas = 1.4126; //水平 1.4126   垂直1.00
 global.g_canvasPx2A4mm = 297.0 / 1188.0;  //水平 297/1188    垂直 210/595 
 global.g_pagedirection = 'h';
+global.g_mm2dpi72 = 2.823650; // 1mm in qgis layout == 2.823650 pixels in dpi72 png
 
-//debug test file  ?file=omc_out/20220416/095446-7188.qgs
 
+//消息函数使用的全局变量
 global.g_mapClipRectObject = null;
 global.g_mapInnerContentChanged = false;
+global.g_layoutItemArray = [] ;
+
+
+
 
 
 
@@ -64,7 +76,7 @@ function App() {
 	const [projectQgsFile, setProjectQgsFile] = useState('');
 	const [fabricCanvasH, setFabricCanvasH] = useState(null);
 	const [fabricCanvasV, setFabricCanvasV] = useState(null);
-	const [layoutItemArry, setLayoutItemArry] = useState([]);
+	const [layoutItemArray, setLayoutItemArray] = useState([]);
 	const [layerArray, setLayerArray] = useState([]);
 	const [projectObject, setProjectObject] = useState(null);
 	const [errorMsgArray, setErrorMsgArray] = useState([]);
@@ -80,9 +92,9 @@ function App() {
 	const [selectedLayerObject, setSelectedLayerObject] = useState(null);
 	const [selectedLayoutObject, setSelectedLayoutObject] = useState(null);
 	const [currentPageDirection, setCurrentPageDirection] = useState('h');//h(landscape) or v(portait)
-	const [canvasHStyle, setCanvasHStyle] = useState({display:"block"}) ;
-	const [canvasVStyle, setCanvasVStyle] = useState({display:"none"}) ;
-	const [isDialogExportOpen, setIsDialogExportOpen] = useState(false) ;
+	const [canvasHStyle, setCanvasHStyle] = useState({ display: "block" });
+	const [canvasVStyle, setCanvasVStyle] = useState({ display: "none" });
+	const [isDialogExportOpen, setIsDialogExportOpen] = useState(false);
 
 
 	useEffect(() => {
@@ -96,7 +108,6 @@ function App() {
 		if (typeof urlParams.get("uid") !== 'undefined') setTheUid(urlParams.get("uid"));
 
 		if (typeof tprojectQgsFile !== 'undefined' && tprojectQgsFile !== null && tprojectQgsFile !== '') {
-			console.log("debug 2");
 			setProjectQgsFile(tprojectQgsFile);
 		}
 		var canvas1 = new fabric.Canvas('fabricCanvasH');
@@ -142,13 +153,13 @@ function App() {
 
 					global.g_dpi72toCanvas = 1.4126; //水平 1.4126   垂直1.00
 					global.g_canvasPx2A4mm = 297.0 / 1188.0;//水平 297/1188    垂直 210/595 
-					setCanvasHStyle({display:"block"}) ;
-					setCanvasVStyle({display:"none"}) ;
+					setCanvasHStyle({ display: "block" });
+					setCanvasVStyle({ display: "none" });
 					setCurrentPageDirection(newdir);
 
 				} else {
-					setCanvasHStyle({display:"none"}) ;
-					setCanvasVStyle({display:"block"}) ;
+					setCanvasHStyle({ display: "none" });
+					setCanvasVStyle({ display: "block" });
 					global.g_dpi72toCanvas = 1.0; //水平 1.4126   垂直1.00
 					global.g_canvasPx2A4mm = 210.0 / 595.0;//水平 297/1188    垂直 210/595 
 
@@ -202,7 +213,7 @@ function App() {
 	/// 从layoutitemArray中查找MapItem对象数组
 	const helperFindMapItems = function () {
 		let mapitems = [];
-		layoutItemArry.forEach(item => {
+		layoutItemArray.forEach(item => {
 			if (item.layoutitem.loitype === 'map') {
 				mapitems.push(item);
 			}
@@ -211,23 +222,37 @@ function App() {
 	}
 
 
+	/// 从layoutitemArray中查找 Item 对象 
+	const helperFindLayoutItem = function (uuid) {
+		let retobj = null;
+		global.g_layoutItemArray.forEach(item => {
+			console.log("- " + item.layoutitem.uuid);
+			if (item.layoutitem.uuid === uuid) {
+				retobj = item;
+				console.log("match");
+			}
+		});
+		return retobj;
+	}
+
+
 	/// 从fabric objects 查找uuid的对象
 	const helperFindFabricObject = function (uuid1) {
 		let theObj1 = null;
-		if( global.g_pagedirection==='h'){
+		if (global.g_pagedirection === 'h') {
 			fabricCanvasH.forEachObject(function (fobj1, index1) {
 				if (fobj1.uuid === uuid1) {
 					theObj1 = fobj1;
 				}
 			});
-		}else{
+		} else {
 			fabricCanvasV.forEachObject(function (fobj1, index1) {
 				if (fobj1.uuid === uuid1) {
 					theObj1 = fobj1;
 				}
 			});
 		}
-		
+
 		return theObj1;
 	}
 
@@ -239,16 +264,34 @@ function App() {
 	}
 
 
-
-	// 画布对象鼠标抬起事件 
+	// 画布对象鼠标抬起事件 这类函数必须使用全局函数
 	const onFabricObjectMouseUp = function (ev) {
 		console.log("mouseup");
-
 		let newleft = ev.target.left * global.g_canvasPx2A4mm;
 		let newtop = ev.target.top * global.g_canvasPx2A4mm;
 		let theuuid = ev.target.uuid;
-
 		let action = ev.transform.action;
+		const theLayoutItem = helperFindLayoutItem(theuuid);
+		if (theLayoutItem === null) {
+			console.log("theLayoutItem === null");
+			return;
+		}
+
+		if (action === 'drag' && theLayoutItem !== null) {
+			if (theLayoutItem.layoutitem.loitype === 'map' && theLayoutItem.grid.enabled === 1) {
+				//console.log("map adjust left/top")
+				const png_wid = ev.target.png_width;
+				const png_hei = ev.target.png_height;
+				const totalmapwid_mm = png_wid / global.g_mm2dpi72;
+				const totalmaphei_mm = png_hei / global.g_mm2dpi72;
+				const gridspacewid_mm = totalmapwid_mm - theLayoutItem.layoutitem.width;
+				const gridspacehei_mm = totalmaphei_mm - theLayoutItem.layoutitem.height;
+				const newleft_mm = ev.target.left * global.g_canvasPx2A4mm + gridspacewid_mm / 2;
+				const newtop_mm = ev.target.top * global.g_canvasPx2A4mm + gridspacehei_mm / 2;
+				newleft = newleft_mm;
+				newtop = newtop_mm;
+			}
+		}
 
 		if (action === 'drag') {
 			let tdata = {
@@ -267,7 +310,21 @@ function App() {
 			let heightnew = ev.target.height * ev.target.scaleY;
 			let widthnew = ev.target.width * ev.target.scaleX;
 
+			let new_wid_mm = widthnew * global.g_canvasPx2A4mm;
+			let new_hei_mm = heightnew * global.g_canvasPx2A4mm;
+
 			if (ev.target.loitype === 'map') {
+
+				if (theLayoutItem.grid.enabled === 1) {
+					const png_wid = ev.target.png_width;
+					const png_hei = ev.target.png_height;
+					const totalmapwid_mm = png_wid / global.g_mm2dpi72;
+					const totalmaphei_mm = png_hei / global.g_mm2dpi72;
+					const gridspacewid_mm = totalmapwid_mm - theLayoutItem.layoutitem.width;
+					const gridspacehei_mm = totalmaphei_mm - theLayoutItem.layoutitem.height;
+					new_wid_mm = new_wid_mm - gridspacewid_mm;
+					new_hei_mm = new_hei_mm - gridspacehei_mm;
+				}
 				//保持地图图片在左上角对齐，只改变长宽，不改变内容尺寸
 				ev.target.scaleX = global.g_dpi72toCanvas;
 				ev.target.scaleY = global.g_dpi72toCanvas;
@@ -277,8 +334,8 @@ function App() {
 
 			let tdata = {
 				uuid: theuuid, file: projectQgsFile,
-				width: widthnew * global.g_canvasPx2A4mm,
-				height: heightnew * global.g_canvasPx2A4mm
+				width: new_wid_mm,
+				height: new_hei_mm
 			};
 
 			callOmcRpc("item.resize", tdata,
@@ -299,14 +356,14 @@ function App() {
 	const redrawMapComposerCanvas = function (itemArray) {
 		//fabricCanvas
 		fabricCanvasH.clear();
-		fabricCanvasV.clear() ;
+		fabricCanvasV.clear();
 
 		let itemcount = itemArray.length;
 		let oImgArray = [];
 
-		let uuidFromBigZtoSmallZ = [] ;
-		for(let i = 0 ; i < itemcount ; ++ i ){
-			uuidFromBigZtoSmallZ.push( itemArray[i].layoutitem.uuid ) ;
+		let uuidFromBigZtoSmallZ = [];
+		for (let i = 0; i < itemcount; ++i) {
+			uuidFromBigZtoSmallZ.push(itemArray[i].layoutitem.uuid);
 		}
 
 		itemArray.forEach(function (item) {
@@ -321,6 +378,8 @@ function App() {
 				oImg.on('mouseup', onFabricObjectMouseUp);
 				oImg.uuid = item.layoutitem.uuid;
 				oImg.loitype = item.layoutitem.loitype;
+				oImg.png_width = oImg.width;
+				oImg.png_height = oImg.height;
 				//oImg.moveTo( item.layoutitem.z ) ;
 				oImg.setCoords();
 				oImg.z = item.layoutitem.z;
@@ -330,25 +389,36 @@ function App() {
 				}
 				if (item.layoutitem.loitype === 'map') {
 					oImg["lockRotation"] = true;
-
+					//考虑是否有网格，left、top需要额外补上网格的空间
+					if (item.grid.enabled === 1) {
+						//console.log("map adjust left/top")
+						const totalmapwid_mm = oImg.width / global.g_mm2dpi72;
+						const totalmaphei_mm = oImg.height / global.g_mm2dpi72;
+						const gridspacewid_mm = totalmapwid_mm - item.layoutitem.width;
+						const gridspacehei_mm = totalmaphei_mm - item.layoutitem.height;
+						const newleft_mm = item.layoutitem.left - gridspacewid_mm / 2;
+						const newtop_mm = item.layoutitem.top - gridspacehei_mm / 2;
+						oImg.left = newleft_mm / global.g_canvasPx2A4mm;
+						oImg.top = newtop_mm / global.g_canvasPx2A4mm;
+						//console.log(item.layoutitem.left + "," + newleft_mm);
+					}
 				}
 				oImg['lockRotation'] = true;
 				oImg['lockScalingFlip'] = true;
 				oImg['lockSkewingX'] = true;
 				oImg['lockSkewingY'] = true;
 
-				oImgArray.push(oImg) ;
+				oImgArray.push(oImg);
 				if (itemcount === 0) {
 					console.log('refresh...');
-					for (let i = uuidFromBigZtoSmallZ.length-1; i >=0 ; --i) {
-						
-						for(let j = 0 ; j < oImgArray.length; ++ j ){
-							if( oImgArray[j].uuid === uuidFromBigZtoSmallZ[i] ){
-								if( global.g_pagedirection==='h')
-								{
+					for (let i = uuidFromBigZtoSmallZ.length - 1; i >= 0; --i) {
+
+						for (let j = 0; j < oImgArray.length; ++j) {
+							if (oImgArray[j].uuid === uuidFromBigZtoSmallZ[i]) {
+								if (global.g_pagedirection === 'h') {
 									fabricCanvasH.add(oImgArray[j]);
-								}	
-								else{
+								}
+								else {
 									fabricCanvasV.add(oImgArray[j]);
 								}
 							}
@@ -396,7 +466,8 @@ function App() {
 
 				//更新canvas
 				const itemarr = result.loitem_array;
-				setLayoutItemArry(itemarr);
+				setLayoutItemArray(itemarr);
+				global.g_layoutItemArray = [...itemarr] ;
 
 				const tlayerarray = result.layer_array;
 				setLayerArray(tlayerarray);
@@ -430,7 +501,7 @@ function App() {
 	}
 
 	const onMTBExport = function () {
-		setIsDialogExportOpen(true) ;
+		setIsDialogExportOpen(true);
 	}
 
 
@@ -444,7 +515,7 @@ function App() {
 		callOmcRpc("layout.addmap", jsondata,
 			function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 			function (err) {
 				setErrorMsgArray([...errorMsgArray, err]);
@@ -458,7 +529,7 @@ function App() {
 		callOmcRpc("layout.addlabel", jsondata,
 			function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 			function (err) {
 				setErrorMsgArray([...errorMsgArray, err]);
@@ -472,7 +543,7 @@ function App() {
 		callOmcRpc("layout.addrect", jsondata,
 			function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 			function (err) {
 				setErrorMsgArray([...errorMsgArray, err]);
@@ -486,7 +557,7 @@ function App() {
 		callOmcRpc("layout.addell", jsondata,
 			function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 			function (err) {
 				setErrorMsgArray([...errorMsgArray, err]);
@@ -499,7 +570,7 @@ function App() {
 		callOmcRpc("layout.addarrow", jsondata,
 			function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 			function (err) {
 				setErrorMsgArray([...errorMsgArray, err]);
@@ -516,7 +587,7 @@ function App() {
 			callOmcRpc("layout.addnorth", jsondata,
 				function (res) {
 					//good
-					regenerateProjectPartsAndRedrawCanvas() ;
+					regenerateProjectPartsAndRedrawCanvas();
 				},
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
@@ -533,7 +604,7 @@ function App() {
 			callOmcRpc("layout.addscalebar", jsondata,
 				function (res) {
 					//good
-					regenerateProjectPartsAndRedrawCanvas() ;
+					regenerateProjectPartsAndRedrawCanvas();
 				},
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
@@ -552,7 +623,7 @@ function App() {
 			callOmcRpc("layout.addlegend", jsondata,
 				function (res) {
 					//good
-					regenerateProjectPartsAndRedrawCanvas() ;
+					regenerateProjectPartsAndRedrawCanvas();
 				},
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
@@ -587,14 +658,14 @@ function App() {
 
 	//辅助函数 加锁或者解锁layout元素
 	const helperSetLockAllFabric = function (isLock) {
-		if( global.g_pagedirection==='h'){
+		if (global.g_pagedirection === 'h') {
 			fabricCanvasH.forEachObject(function (fobj1, index1) {
 				fobj1.lockMovementX = isLock;
 				fobj1.lockMovementY = isLock;
 				fobj1.lockScalingX = isLock;
 				fobj1.lockScalingY = isLock;
 			});
-		}else{
+		} else {
 			fabricCanvasV.forEachObject(function (fobj1, index1) {
 				fobj1.lockMovementX = isLock;
 				fobj1.lockMovementY = isLock;
@@ -602,7 +673,7 @@ function App() {
 				fobj1.lockScalingY = isLock;
 			});
 		}
-		
+
 	}
 
 
@@ -655,15 +726,15 @@ function App() {
 		});
 
 		global.g_mapClipRectObject = rect;
-		if( global.g_pagedirection==='h') fabricCanvasH.add(rect);
-		else  fabricCanvasV.add(rect);
+		if (global.g_pagedirection === 'h') fabricCanvasH.add(rect);
+		else fabricCanvasV.add(rect);
 		map1.clipPath = clipPath2;
 		map1.__eventListeners['mouseup'] = [];
 		map1.on("mouseup", onMapItemInnerMouseupHandler);
 		map1.set('dirty', true);
-		if( global.g_pagedirection==='h') fabricCanvasH.setActiveObject(map1);
-		else  fabricCanvasV.setActiveObject(map1);
-		
+		if (global.g_pagedirection === 'h') fabricCanvasH.setActiveObject(map1);
+		else fabricCanvasV.setActiveObject(map1);
+
 
 		helperSetLockAllFabric(true);
 		map1.lockMovementX = false;
@@ -674,9 +745,9 @@ function App() {
 	const onLayoutItemMapEndMoveInner = function (item) {
 		const leftr = global.g_mapClipRectObject.left;
 		const topr = global.g_mapClipRectObject.top;
-		if( global.g_pagedirection==='h')
-				fabricCanvasH.remove(global.g_mapClipRectObject);
-				else fabricCanvasV.remove(global.g_mapClipRectObject);
+		if (global.g_pagedirection === 'h')
+			fabricCanvasH.remove(global.g_mapClipRectObject);
+		else fabricCanvasV.remove(global.g_mapClipRectObject);
 		global.g_mapClipRectObject = null;
 
 		let map1 = helperFindFabricObject(item.layoutitem.uuid);
@@ -717,7 +788,7 @@ function App() {
 				//ok
 				helperSetLockAllFabric(false);
 				map1.clipPath = null;
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			}, function (err) {
 				helperSetLockAllFabric(false);
 				appendErrorMsg(err);
@@ -741,13 +812,13 @@ function App() {
 			function (res) {
 				//ok 在fabric中删除对象，不用刷新界面
 				const tfaobj = helperFindFabricObject(loitem.layoutitem.uuid);
-				if( global.g_pagedirection==='h')
+				if (global.g_pagedirection === 'h')
 					fabricCanvasH.remove(tfaobj);
 				else fabricCanvasV.remove(tfaobj);
 
 				//从layoutitem面板删除item
-				let newItemArr = layoutItemArry.filter(item1 => item1.layoutitem.uuid!==loitem.layoutitem.uuid ) ;
-				setLayoutItemArry(newItemArr) ;
+				let newItemArr = layoutItemArray.filter(item1 => item1.layoutitem.uuid !== loitem.layoutitem.uuid);
+				setLayoutItemArray(newItemArr);
 
 			}, function (err) {
 				appendErrorMsg(err);
@@ -778,7 +849,7 @@ function App() {
 			jsondata.relsrc = relfilename;
 			callOmcRpc("layout.addimage", jsondata, function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
@@ -790,7 +861,7 @@ function App() {
 			jsondata.vecfile = relfilename;
 			callOmcRpc("project.addvec", jsondata, function (res) {
 				//good
-				regenerateProjectPartsAndRedrawCanvas() ;
+				regenerateProjectPartsAndRedrawCanvas();
 			},
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
@@ -948,13 +1019,13 @@ function App() {
 
 	//  导出作图对话框  START +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	//  导出作图对话框  START +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	const onDialogExportOk = function(data){
+	const onDialogExportOk = function (data) {
 
-		setIsDialogExportOpen(false) ;
+		setIsDialogExportOpen(false);
 	}
 
-	const onDialogExportCancel = function (){
-		setIsDialogExportOpen(false) ;
+	const onDialogExportCancel = function () {
+		setIsDialogExportOpen(false);
 	}
 
 	//  导出作图对话框 END  ---------------------------------------------------------
@@ -1008,7 +1079,7 @@ function App() {
 
 					{/* 地图元素面板 */}
 					<MapItemPanel
-						layoutItemArry={layoutItemArry}
+						layoutItemArray={layoutItemArray}
 						onLayoutItemEdit={onLayoutItemEdit}
 						onLayoutItemDelete={onLayoutItemDelete}
 						onMapItemEnableInner={onLayoutItemMapStartMoveInner}
@@ -1023,14 +1094,14 @@ function App() {
 					<div
 						className="AppCanvasContainer"
 					>
-						<div className="AppCanvasContainerInnerHori" 
-						style={canvasHStyle}
+						<div className="AppCanvasContainerInnerHori"
+							style={canvasHStyle}
 						>
 							<canvas id="fabricCanvasH" width={1188} height={840}></canvas>
 						</div>
-						
+
 						<div className="AppCanvasContainerInnerVert"
-						style={canvasVStyle}
+							style={canvasVStyle}
 						>
 							<canvas id="fabricCanvasV" width={595} height={841}></canvas>
 						</div>
@@ -1099,13 +1170,13 @@ function App() {
 
 
 			{/* 导出作图对话框 */}
-			<DialogExport 
-			isOpen={isDialogExportOpen}
-			onCancel={onDialogExportCancel}
-			onOk = {onDialogExportOk}
-			projectQgsFile={projectQgsFile}
-			callOmcRpc={callOmcRpc}
-			appendErrorMsg={appendErrorMsg}
+			<DialogExport
+				isOpen={isDialogExportOpen}
+				onCancel={onDialogExportCancel}
+				onOk={onDialogExportOk}
+				projectQgsFile={projectQgsFile}
+				callOmcRpc={callOmcRpc}
+				appendErrorMsg={appendErrorMsg}
 			/>
 		</div>
 	);

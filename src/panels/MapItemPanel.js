@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DialogLayerProperty from '../dialogs/DialogLayerProperty';
 
 
-// props.layoutItemArry 
+// props.layoutItemArray 
 // props.onLayoutItemEdit
 // props.onLayoutItemDelete
 // onMapItemEnableInner 
@@ -59,7 +59,7 @@ function MapItemPanel(props) {
                                 ref={provided.innerRef}
 
                             >
-                                {props.layoutItemArry.map((item, index) => (
+                                {props.layoutItemArray.map((item, index) => (
                                     <Draggable key={index}
                                         draggableId={'did' + index}
                                         index={index}>

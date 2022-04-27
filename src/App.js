@@ -29,7 +29,8 @@ global.g_version = "v0.1.2";// 2022-4-26 map crs
 global.g_version = "v0.1.2r-qh";//2022-4-26
 global.g_version = "v0.1.3r"; //2022-4-27 fix mapitem resize with grid
 global.g_version = "v0.1.3r-qh";
-global.g_version = "v0.1.4r";
+global.g_version = "v0.1.4r-qh";
+global.g_version = "v0.1.4r-tx";
 
 // API 样例 192.168.56.103:15911/
 // http://192.168.56.103:15980/omc_res/firefox.png 静态资源网址样例
@@ -41,14 +42,14 @@ global.g_staticRootUrl = "http://192.168.56.103:15980/";
 //omc api http://124.220.3.186:15911/
 //task17 api http://124.220.3.186:8080/api/pe/user/login
 //static res http://124.220.3.186:8080/images/login_inner_frame.png
-//global.g_task17apiroot = "http://124.220.3.186:8080/api/pe/";
-//global.g_omcApi = "http://124.220.3.186:15911/";
-//global.g_staticRootUrl = "http://124.220.3.186:8080/" ;
+global.g_task17apiroot = "http://124.220.3.186:8080/api/pe/";
+global.g_omcApi = "http://124.220.3.186:8080/api/omc/";
+global.g_staticRootUrl = "http://124.220.3.186:8080/" ;
 
 //气候中心 use 8280 as front-function
-global.g_task17apiroot = "http://10.10.30.81:8180/api/pe/";
-global.g_omcApi =        "http://10.10.30.81:15911/";
-global.g_staticRootUrl = "http://10.10.30.81:8180/" ;
+// global.g_task17apiroot = "http://10.10.30.81:8180/api/pe/";
+// global.g_omcApi =        "http://10.10.30.81:15911/";
+// global.g_staticRootUrl = "http://10.10.30.81:8180/" ;
 
 
 

@@ -142,6 +142,7 @@ function McMainToolbarPanel(props) {
                         </Button>
                         <Image style={{ marginLeft: '6px' }}
                             roundedCircle src="./images/mc/user.png" /> */}
+                        <span style={{fontSize:'12px',color:'gray'}}>版本:{global.g_version}</span>
                     </Col>
 
 

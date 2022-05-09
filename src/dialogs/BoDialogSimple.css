@@ -1,0 +1,65 @@
+
+
+div.modal-dialog {
+  max-width: 660px;
+  height:464px;
+  padding:2px;
+  top:30%;
+  border-radius: 2px;
+  background-color: #FFFFFF;
+}
+
+/* 460 = 30 + 40 + 390  */
+div.modal-header {
+  max-width: 654px;
+  height: 30px;
+  padding:0px;
+}
+
+div.modal-title.h4{
+  height:26px;
+  font-size: 18px;
+  padding:0px;
+  color: #FFFFFF;
+}
+
+div.modal-body {
+  max-width: 654px;
+  height:390px;
+  padding: 8px;
+  overflow-x:hidden;
+  overflow-y: auto;
+}
+
+div.modal-footer {
+  max-width: 654px;
+  height:38px;
+  padding:0px;
+}
+
+
+
+.BoDialogTitleSlash {
+  display: inline;
+  border-left: 4px #FFFFFF solid;
+  margin:0px;
+  margin-left: 6px;
+  margin-right: 6px; 
+  line-height: 18px;
+}
+
+.FileRow{
+  /* padding: 4px;
+  margin: 4px;
+  border: 2px solid #a8a8a8  ; */
+  cursor: pointer;
+  
+}
+
+/* .FileRow:hover {
+  border-color: #3597D1;
+} */
+
+.FileRow.Active {
+  border-color: #0ca174;
+}

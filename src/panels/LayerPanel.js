@@ -1,6 +1,6 @@
-import React from 'react'
+import React ,{useState,useEffect} from 'react'
 
-import { Button, Card, Grid, Row, Col, Image } from 'react-bootstrap';
+import { Button, Card, Grid, Row, Col, Image , Form} from 'react-bootstrap';
 import './panels.css';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
@@ -9,16 +9,65 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 // onEditItem
 // onRemoveItem
 // props.layerArray
+// props.themeArray
 function LayerPanel(props) {
-
-
 
 
 	const onDragEnd = function () {
 
 	}
 
+	const [currentVisibleLayerList, setCurrentVisibleLayerList] = useState([]) ;
+	const [currentThemeName, setCurrentThemeName] = useState('') ;
 
+	useEffect(() => {
+		if( typeof props.themeArray !== 'undefined' && props.themeArray !== null 
+		&& props.themeArray.length>0 )
+		{
+			const name1 = props.themeArray[0].name ;
+			setCurrentThemeName(name1) ;
+			updateLayerListByThemeName(name1) ;
+		}
+		
+	}, [props.layerArray,props.themeArray])
+	
+
+
+	//private
+	const updateLayerListByThemeName = function(themename){
+		if( typeof props.themeArray === 'undefined' || props.themeArray===null)  return ;
+		let themeObj = null ;
+		for(let i=0;i<props.themeArray.length;++i)
+		{
+			if( props.themeArray[i].name === themename ){
+				themeObj = props.themeArray[i] ;
+				break;
+			}
+		}
+		if( themeObj===null ) return ;
+		const vislist = themeObj.vislyrid;
+		let tempArr = [] ;
+		for(let i = 0 ; i < props.layerArray.length; ++ i )
+		{
+			for(let j = 0 ; j<vislist.length;++j )
+			{
+				if( vislist[j] === props.layerArray[i].qlyrid )
+				{
+					tempArr.push(props.layerArray[i]) ;
+					break ;
+				}
+
+			}
+		}
+		setCurrentVisibleLayerList(tempArr) ;
+	}
+
+
+	const onThemeChanged = function(ev) {
+		const themeName1 = ev.target.value ;
+		setCurrentThemeName(themeName1) ;
+		updateLayerListByThemeName(themeName1) ;
+	}
 
 
 	return (
@@ -30,6 +79,20 @@ function LayerPanel(props) {
 				{/* <Button basic style={{ float: 'right' }} onClick={props.onAddRect}>添加矢量图层</Button> */}
 			</div>
 
+			<div style={{padding:'6px'}}>
+				<Form.Select onChange={onThemeChanged} value={currentThemeName} >
+					{
+						(typeof props.themeArray !== 'undefined' && props.themeArray!==null)?(
+							props.themeArray.map( (item,index) => (
+								<option key={'key'+index} value={item.name} >{item.name}</option>
+							))
+						):""
+					}
+					{/* <option value="1">One</option> */}
+				</Form.Select>
+			</div>
+			
+
 			{/* item container */}
 			<div className="PanelItemListContainer">
 				<DragDropContext onDragEnd={onDragEnd}>
@@ -40,8 +103,8 @@ function LayerPanel(props) {
 								ref={provided.innerRef}
 
 							>
-								{props.layerArray.map((item, index) => (
-									<Draggable key={index}
+								{currentVisibleLayerList.map((item, index) => (
+									<Draggable key={'key'+index}
 										draggableId={'did' + index}
 										index={index}>
 										{(provided, snapshot) => (

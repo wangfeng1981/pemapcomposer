@@ -28,9 +28,10 @@ global.g_version = "v0.1.1tx";// 2022-4-25
 global.g_version = "v0.1.2";// 2022-4-26 map crs 
 global.g_version = "v0.1.2r-qh";//2022-4-26
 global.g_version = "v0.1.3r"; //2022-4-27 fix mapitem resize with grid
-global.g_version = "v0.1.3r-qh";
-global.g_version = "v0.1.4r-qh";
-global.g_version = "v0.1.4r-tx";
+// global.g_version = "v0.1.3r-qh";
+// global.g_version = "v0.1.4r-qh";
+// global.g_version = "v0.1.4r-tx";
+global.g_version = "v0.1.5.0"; //2022-5-31 style legend and map theme, commit
 
 // API 样例 192.168.56.103:15911/
 // http://192.168.56.103:15980/omc_res/firefox.png 静态资源网址样例
@@ -42,9 +43,9 @@ global.g_staticRootUrl = "http://192.168.56.103:15980/";
 //omc api http://124.220.3.186:15911/
 //task17 api http://124.220.3.186:8080/api/pe/user/login
 //static res http://124.220.3.186:8080/images/login_inner_frame.png
-global.g_task17apiroot = "http://124.220.3.186:8080/api/pe/";
-global.g_omcApi = "http://124.220.3.186:8080/api/omc/";
-global.g_staticRootUrl = "http://124.220.3.186:8080/" ;
+// global.g_task17apiroot = "http://124.220.3.186:8080/api/pe/";
+// global.g_omcApi = "http://124.220.3.186:8080/api/omc/";
+// global.g_staticRootUrl = "http://124.220.3.186:8080/" ;
 
 //气候中心 use 8280 as front-function
 // global.g_task17apiroot = "http://10.10.30.81:8180/api/pe/";
@@ -80,6 +81,7 @@ function App() {
 	const [fabricCanvasV, setFabricCanvasV] = useState(null);
 	const [layoutItemArray, setLayoutItemArray] = useState([]);
 	const [layerArray, setLayerArray] = useState([]);
+	const [themeArray, setThemeArray] = useState([]);
 	const [projectObject, setProjectObject] = useState(null);
 	const [errorMsgArray, setErrorMsgArray] = useState([]);
 	const [olMapExtentX0, setOlMapExtentX0] = useState(-180);
@@ -473,6 +475,7 @@ function App() {
 
 				const tlayerarray = result.layer_array;
 				setLayerArray(tlayerarray);
+				setThemeArray(result.theme_array) ;
 
 				redrawMapComposerCanvas(itemarr);
 
@@ -616,7 +619,56 @@ function App() {
 		}
 	}
 
+	//获取style详情
+	const httpGetStyleDetail = function(styleid){
+		//http://192.168.56.103:15900/pe/style/detail/2
+		if( styleid===0 ) return ;
+		const url1 = global.g_task17apiroot + "style/detail/"+styleid;
+		fetch(url1)  //GET
+		.then(response=>response.json())
+		.then(result => {
+			if( result.state===0 ){
+				const stylefilename = result.data.filename ;
+				if( stylefilename !== '' ){
+					httpAddStyleLegend(stylefilename) ;
+				}
+			}else{
+				regenerateProjectPartsAndRedrawCanvas();
+			}
+		}).catch(err=> {
+			console.log(err) ;// 505 404 ... errors
+		});
+	}
+
+	//添加Style到Layout
+	const httpAddStyleLegend = function(stylefilename)
+	{//
+		if( stylefilename==='' ) return ;
+		let jsondata = {};
+		jsondata.file = projectQgsFile;
+		jsondata.stylefile = stylefilename ;
+		callOmcRpc("layout.addstylelegend", jsondata,
+			function (res) {
+				//good
+				regenerateProjectPartsAndRedrawCanvas();
+			},
+			function (err) {
+				setErrorMsgArray([...errorMsgArray, err]);
+			});
+	}
+
+
 	const onMTBAddLegend = function () {
+		let someStyleid = 0 ;
+		for(let lyrObj1 of layerArray)
+		{
+			if( lyrObj1.type==='wms' ){
+				someStyleid = lyrObj1.styleid ;
+				break ;
+			}
+		}
+		if( typeof someStyleid === 'undefined' ) someStyleid = 0 ;
+
 		const mapitems = helperFindMapItems();
 		if (mapitems.length > 0) {
 			let jsondata = {};
@@ -625,7 +677,8 @@ function App() {
 			callOmcRpc("layout.addlegend", jsondata,
 				function (res) {
 					//good
-					regenerateProjectPartsAndRedrawCanvas();
+					if(someStyleid!==0) httpGetStyleDetail(someStyleid) ;
+					else regenerateProjectPartsAndRedrawCanvas();
 				},
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
@@ -856,7 +909,7 @@ function App() {
 				function (err) {
 					setErrorMsgArray([...errorMsgArray, err]);
 				});
-		} else if (filetype == 3) {
+		} else if (filetype === 3) {
 			let jsondata = {};
 			jsondata.file = projectQgsFile;
 			jsondata.vecname = nameOrEmpty;
@@ -1072,7 +1125,7 @@ function App() {
 						onEditItem={onEditLayer}
 						onRemoveItem={onRemoveLayer}
 						layerArray={layerArray}
-
+						themeArray={themeArray}
 					/>
 
 
@@ -1154,6 +1207,7 @@ function App() {
 				appendErrorMsg={appendErrorMsg}
 				regenerateProjectPartsAndRedrawCanvas={regenerateProjectPartsAndRedrawCanvas}
 				projectObject={projectObject}
+				themeArray={themeArray}
 			/>
 
 

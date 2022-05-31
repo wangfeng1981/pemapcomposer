@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 
 import BoDialogSimple from './BoDialogSimple';
-import { Container, Button, Card, Row, Col, Form, Image, Table } from 'react-bootstrap';
+import { Container, Button, Card, Row, Col, Form, Image, Table,FormCheck } from 'react-bootstrap';
 
 import LayoutItemPropery from '../components/LayoutItemPropery';
 import MapGrid from '../components/MapGrid';
@@ -18,11 +18,22 @@ import LabelProperty from '../components/LabelProperty';
 //appendErrorMsg 
 //regenerateProjectPartsAndRedrawCanvas
 //projectObject
+//props.themeArray
 function DialogMapItemProperty(props) {
 
     const [theTitle, setTheTitle] = useState("地图元素属性");
     const [currObject, setCurrObject] = useState(props.theObject);
     const [crsArray, setCrsArray] = useState([]);
+    const [themeArray2, setThemeArray2] = useState([])
+    
+    useEffect(() => {
+        if( typeof props.themeArray !== 'undefined' 
+        && props.themeArray!== null ){
+            setThemeArray2( props.themeArray ) ;
+        }
+    }, [props.themeArray])
+    
+
 
     useEffect(() => {
         setCurrObject(props.theObject);
@@ -92,8 +103,26 @@ function DialogMapItemProperty(props) {
     }
 
     const onChangedCrs = function (ev) {
+        let newobj = { ...currObject };
+        newobj.data.authid = ev.target.value;
+        setCurrObject(newobj);
+    }
+
+    const oneZero2Bool = function(ival){
+        if( ival===0)return false ;
+        else return true ;
+    }
+
+
+    const onUseThemeChanged = function(ev){
         let newobj = {...currObject} ;
-        newobj.data.authid = ev.target.value ;
+        newobj.data.following_vis_preset = (ev.target.checked)?1:0;
+        setCurrObject(newobj) ;
+    }
+
+    const onChangeTheme = function(ev){
+        let newobj = {...currObject} ;
+        newobj.data.vis_preset =ev.target.value ;
         setCurrObject(newobj) ;
     }
 
@@ -119,14 +148,48 @@ function DialogMapItemProperty(props) {
                             }
                             {
                                 (currObject !== null && currObject.layoutitem.loitype === 'map') ? (
+                                    <>
+                                        <tr>
+                                            <td>使用Theme</td>
+                                            <td>
+                                            <FormCheck
+                                                type={'checkbox'}
+                                                label={""}
+                                                checked={oneZero2Bool(currObject.data.following_vis_preset)}
+                                                onChange={onUseThemeChanged}
+                                                />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>地图Theme</td>
+                                            <td>
+                                            <select className="form-select"
+                                                value={currObject.data.vis_preset}
+                                                onChange={onChangeTheme} >
+                                                {
+                                                    themeArray2.map((item, index) => (
+                                                        <option key={'key' + index} 
+                                                        value={item.name}>{item.name}</option>
+                                                    )
+                                                    )
+                                                }
+                                            </select>
+                                            </td>
+                                        </tr>
+                                    </>
+
+                                ) : ""
+                            }
+                            {
+                                (currObject !== null && currObject.layoutitem.loitype === 'map') ? (
                                     <tr>
                                         <td>坐标系</td>
                                         <td>
-                                            <select className="form-select" 
-                                            value={currObject.data.authid} onChange={onChangedCrs} >
+                                            <select className="form-select"
+                                                value={currObject.data.authid} onChange={onChangedCrs} >
                                                 {
-                                                    crsArray.map((crsitem,index) => (
-                                                        <option key={'key'+index} value={crsitem.authid}>{crsitem.crsdescription}</option>
+                                                    crsArray.map((crsitem, index) => (
+                                                        <option key={'key' + index} value={crsitem.authid}>{crsitem.crsdescription}</option>
                                                     )
                                                     )
                                                 }

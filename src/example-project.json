@@ -1,0 +1,465 @@
+table
+tbomcqgsfile
+tbomcimgfile
+tbomcvecfile
+
+next java api
+.../pe/omcqgsfiles?uid=1
+.../pe/omcqgsnew post uid=1
+
+.../pe/omcimgfiles?uid=1
+.../pe/omcimgupload post 
+
+.../pe/omcvecfiles?uid=1
+.../pe/omcvecupload post
+
+
+
+对话框
+打开Qgs工程文件
+添加矢量
+编辑矢量渲染
+导出
+添加图片
+编辑地图
+编辑文本标签
+编辑形状
+编辑指北针
+编辑图例
+编辑比例尺
+编辑图片
+
+
+
+
+
+
+
+{
+    "file": "omc_out/20220416/095446-7188.qgs",
+    "layer_array": [
+        {
+            "name": "ne_50m_land.shp",
+            "qlyrid": "ne_50m_land_shp_c96a4b6b_0a19_4983_9afa_d70927e77955",
+            "type": "vec",
+            "type2": 3
+        },
+        {
+            "name": "wmslyr",
+            "qlyrid": "wmslyr_9dffe133_a765_4f6f_8611_7fc7e91f8519",
+            "type": "wms",
+            "styleid":2
+        }
+    ],
+    "loitem_array": [
+        {
+            "data": {
+                "extent": {
+                    "xmax": 180.675060487245,
+                    "xmin": -180.675060487245,
+                    "ymax": 90.3375302436225,
+                    "ymin": -90.3375302436225
+                },
+                "proj": "",
+                "scale": 399600000
+            },
+            "grid": {
+                "enabled": 0,
+                "stepx":5,
+                "stepy":5,
+                "offsetx":0,
+                "offsety":0,
+                "linesymbol":{
+                    "width":0.3,
+                    "color":{r:0,g:0,b:0,a:255},
+                    "style":'solid|dot|dash',
+                },
+                "font":{
+                    "bold":1,
+                    "color":{r:0,g:0:b:0,a:255},
+                    "size":12,
+                    "align":"left",
+                }
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "enabled": 0,
+                    "width": 0.3
+                },
+                "height": 50,
+                "left": 0,
+                "loitype": "map",
+                "name": "Map 1",
+                "qloitype": 65639,
+                "rot": 0,
+                "top": 0,
+                "uuid": "{7edf866a-7ad0-4581-9c98-7d91fc3bc64a}",
+                "width": 100,
+                "z": 1
+            },
+            "png": "omc_out/20220416/095446-7188.qgs-095541-1.png"
+        }
+    ]
+}
+
+{
+    "state": 0,
+    "message": "",
+    "data": [
+        {
+            "omcid": 16,
+            "type": 1,
+            "type2": 0,
+            "file": "omc_out/20220419/112427-0707.qgs",
+            "uid": 1,
+            "name": "2022/04/19 11:24:28",
+            "ctime": "2022-04-19 11:24:28"
+        },
+    ]
+}
+
+
+
+
+
+
+{
+    "file": "omc_out/20220420/055603-8650.qgs",
+    "layer_array": [
+        {
+            "data": {
+                "linesymbol": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "style": "solid",
+                    "width": 0.26
+                }
+            },
+            "name": "NinePolygon.shp",
+            "qlyrid": "NinePolygon_shp_aef184e6_5f55_42b2_aa1d_b97ea6e1fcc5",
+            "type": "vec",
+            "type2": 2
+        },
+        {
+            "data": {
+                "pointsymbol": {
+                    "polysymbol": {
+                        "fillcolor": {
+                            "a": 255,
+                            "b": 23,
+                            "g": 158,
+                            "r": 255
+                        },
+                        "linesymbol": {
+                            "color": {
+                                "a": 255,
+                                "b": 35,
+                                "g": 35,
+                                "r": 35
+                            },
+                            "style": "solid",
+                            "width": 0
+                        }
+                    },
+                    "shape": "circle",
+                    "size": 2
+                }
+            },
+            "name": "中国县市_点.shp",
+            "qlyrid": "中国县市_点_shp_ba467fdc_615b_473c_825b_1fb00e8aa436",
+            "type": "vec",
+            "type2": 1
+        },
+        {
+            "data": {
+                "polysymbol": {
+                    "fillcolor": {
+                        "a": 255,
+                        "b": 54,
+                        "g": 182,
+                        "r": 229
+                    },
+                    "linesymbol": {
+                        "color": {
+                            "a": 255,
+                            "b": 35,
+                            "g": 35,
+                            "r": 35
+                        },
+                        "style": "solid",
+                        "width": 0.26
+                    }
+                }
+            },
+            "name": "ne_50m_land.shp",
+            "qlyrid": "ne_50m_land_shp_c96a4b6b_0a19_4983_9afa_d70927e77955",
+            "type": "vec",
+            "type2": 3
+        },
+        {
+            "name": "wmslyr",
+            "qlyrid": "wmslyr_9dffe133_a765_4f6f_8611_7fc7e91f8519",
+            "type": "wms"
+        }
+    ],
+    "loitem_array": [
+        {
+            "data": {
+                "mapuuid": "{34a0fba5-5204-4892-abce-6d4f5c7ce469}"
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 255,
+                        "g": 191,
+                        "r": 0
+                    },
+                    "enabled": 0,
+                    "width": 0.3
+                },
+                "height": 20,
+                "left": 9.75,
+                "loitype": "scalebar",
+                "name": "<Scalebar>",
+                "qloitype": 65646,
+                "rot": 0,
+                "top": 178.25,
+                "uuid": "{40055045-0eda-43bb-ba3c-27302c4c1061}",
+                "width": 106.55027151322147,
+                "z": 6
+            },
+            "png": "omc_out/20220420/055603-8650.qgs-231453-1.png"
+        },
+        {
+            "data": {
+                "src": "omc_res/NorthArrow_11.svg"
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "enabled": 0,
+                    "width": 0.3
+                },
+                "height": 46.5132,
+                "left": 236.013,
+                "loitype": "north",
+                "name": "<Picture>",
+                "qloitype": 65640,
+                "rot": 0,
+                "top": 6.25,
+                "uuid": "{a1d7fa97-e91d-4d2f-808f-88bcd24e3df8}",
+                "width": 46.5132,
+                "z": 5
+            },
+            "png": "omc_out/20220420/055603-8650.qgs-231453-2.png"
+        },
+        {
+            "data": {
+                "polysymbol": {
+                    "fillcolor": {
+                        "a": 128,
+                        "b": 0,
+                        "g": 0,
+                        "r": 255
+                    },
+                    "linesymbol": {
+                        "color": {
+                            "a": 255,
+                            "b": 255,
+                            "g": 85,
+                            "r": 0
+                        },
+                        "style": "solid",
+                        "width": 2
+                    }
+                }
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "enabled": 1,
+                    "width": 0.3
+                },
+                "height": 40,
+                "left": 122.75,
+                "loitype": "ell",
+                "name": "<Ellipse>",
+                "qloitype": 65643,
+                "rot": 0,
+                "top": 90.75,
+                "uuid": "{94196481-4fb2-41e2-99ee-1ce8ecdddb50}",
+                "width": 80,
+                "z": 4
+            },
+            "png": "omc_out/20220420/055603-8650.qgs-231453-3.png"
+        },
+        {
+            "data": {
+                "polysymbol": {
+                    "fillcolor": {
+                        "a": 64,
+                        "b": 30,
+                        "g": 255,
+                        "r": 0
+                    },
+                    "linesymbol": {
+                        "color": {
+                            "a": 255,
+                            "b": 255,
+                            "g": 0,
+                            "r": 187
+                        },
+                        "style": "solid",
+                        "width": 0.3
+                    }
+                }
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "enabled": 0,
+                    "width": 0.3
+                },
+                "height": 40.2591,
+                "left": 77.25,
+                "loitype": "rect",
+                "name": "<Rectangle>",
+                "qloitype": 65643,
+                "rot": 0,
+                "top": 107.25,
+                "uuid": "{25032b43-61ff-4340-ac26-c01ceb57b8c5}",
+                "width": 45.25,
+                "z": 3
+            },
+            "png": "omc_out/20220420/055603-8650.qgs-231453-4.png"
+        },
+        {
+            "data": {
+                "font": {
+                    "align": "left",
+                    "bold": 1,
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 68,
+                        "r": 194
+                    },
+                    "size": 20
+                },
+                "text": "其实也差不多，\n当年邵氏把重心从电影转向电视剧，\n狄龙在低谷期只接受台湾那边邀请拍过一部不算电影的政教片"
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "enabled": 1,
+                    "width": 0.3
+                },
+                "height": 45.3409,
+                "left": 16.25,
+                "loitype": "label",
+                "name": "其实也差不多， 当年邵氏把重心从电影转向电视剧，…",
+                "qloitype": 65641,
+                "rot": 0,
+                "top": 3.5,
+                "uuid": "{fc7cd52a-eabd-4403-945b-47935a03df55}",
+                "width": 225.909,
+                "z": 2
+            },
+            "png": "omc_out/20220420/055603-8650.qgs-231453-5.png"
+        },
+        {
+            "data": {
+                "extent": {
+                    "xmax": 126.44185084180995,
+                    "xmin": 105.55746671254818,
+                    "ymax": 33.86367596617433,
+                    "ymin": 21.07842394411005
+                },
+                "proj": "EPSG:4326",
+                "scale": 7656159.835759205
+            },
+            "grid": {
+                "enabled": 0,
+                "font": {
+                    "align": "left",
+                    "bold": 0,
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "size": 8
+                },
+                "linesymbol": {
+                    "color": {
+                        "a": 16,
+                        "b": 0,
+                        "g": 0,
+                        "r": 0
+                    },
+                    "style": "dash",
+                    "width": 0.3
+                },
+                "offsetx": 0,
+                "offsety": 0,
+                "stepx": 5,
+                "stepy": 5
+            },
+            "layoutitem": {
+                "frame": {
+                    "color": {
+                        "a": 255,
+                        "b": 0,
+                        "g": 0,
+                        "r": 255
+                    },
+                    "enabled": 0,
+                    "width": 0
+                },
+                "height": 128.5719429312581,
+                "left": 18.565,
+                "loitype": "map",
+                "name": "Map 1",
+                "qloitype": 65639,
+                "rot": 0,
+                "top": 20.435,
+                "uuid": "{34a0fba5-5204-4892-abce-6d4f5c7ce469}",
+                "width": 210.019,
+                "z": 1
+            },
+            "png": "omc_out/20220420/055603-8650.qgs-231453-6.png"
+        }
+    ]
+}

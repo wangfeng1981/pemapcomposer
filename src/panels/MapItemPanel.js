@@ -3,6 +3,8 @@ import { Button, Card } from 'react-bootstrap';
 import './panels.css';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DialogLayerProperty from '../dialogs/DialogLayerProperty';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare,faTrashCan,faExpand,faCompress,faHand,faBan } from '@fortawesome/free-solid-svg-icons';
 
 
 // props.layoutItemArray 
@@ -12,26 +14,19 @@ import DialogLayerProperty from '../dialogs/DialogLayerProperty';
 // onMapItemDisableInner 
 // onMapItemZoomIn
 // onMapItemZoomOut
+// currentInnerMovingMapUuid
 function MapItemPanel(props) {
-
-    // selectedMapItem.uuid, selectedMapItem.enabled=true/false
-    const [selectedMapItem, setSelectedMapItem] = useState(null) ;
 
     const onDragEnd = function () {
 
     }
 
     const onMapItemEnableInner = function(item){
-        let item1 = {} ;
-        item1.uuid = item.layoutitem.uuid ;
-        item1.enabled = true ;
-        setSelectedMapItem(item1) ;
-        props.onMapItemEnableInner(item) ;
+        props.onMapItemEnableInner(item.layoutitem.uuid) ;
     }
 
-    const onMapItemDisableInner = function(item){
-        setSelectedMapItem(null) ;
-        props.onMapItemDisableInner(item) ;
+    const onMapItemDisableInner = function(mapuuid){
+        props.onMapItemDisableInner(mapuuid) ;
     }
 
     const onZoomIn = function(loitem){
@@ -49,7 +44,7 @@ function MapItemPanel(props) {
         >
             <div className="PanelHeader">地图元素面板</div>
             {/* item container */}
-            <div className="PanelItemListContainer">
+            <div className="PanelItemListContainer2">
 
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="droppable">
@@ -71,25 +66,24 @@ function MapItemPanel(props) {
 
                                             >
                                                 <Card.Body>
-                                                    <Card.Text>
-                                                        {item.layoutitem.name}
-                                                    </Card.Text>
+                                                    <div>{item.layoutitem.name}</div>
                                                     {
-                                                        (item.layoutitem.loitype === 'map' && selectedMapItem===null ) ? (
+                                                        (item.layoutitem.loitype === 'map' && 
+                                                        props.currentInnerMovingMapUuid!==item.layoutitem.uuid ) ? (
                                                             <>
                                                             <Button size="sm" variant="outline-secondary"
                                                                 onClick={() => onMapItemEnableInner(item)}>
-                                                                开启移动地图内容
+                                                                <FontAwesomeIcon icon={faHand} color="dark" />
                                                             </Button>
                                                             <Button size="sm" variant="outline-secondary"
                                                             onClick={()=>onZoomIn(item)}
                                                             >
-                                                                放大
+                                                                <FontAwesomeIcon icon={faExpand} color="dark" />
                                                             </Button>
                                                             <Button size="sm" variant="outline-secondary"
                                                             onClick={()=>onZoomOut(item)}
                                                             >
-                                                                缩小
+                                                                <FontAwesomeIcon icon={faCompress} color="dark" />
                                                             </Button>
                                                             </>
                                                             
@@ -97,23 +91,22 @@ function MapItemPanel(props) {
                                                     }
                                                     {
                                                         (item.layoutitem.loitype === 'map'
-                                                        && selectedMapItem!==null 
-                                                        && selectedMapItem.uuid===item.layoutitem.uuid) ? (
+                                                        && props.currentInnerMovingMapUuid===item.layoutitem.uuid) ? (
                                                             <Button size="sm" variant="outline-secondary"
-                                                                onClick={() => onMapItemDisableInner(item)}>
-                                                                结束移动地图内容
+                                                                onClick={() => onMapItemDisableInner(item.layoutitem.uuid)}>
+                                                                <FontAwesomeIcon icon={faBan} color="dark" />
                                                             </Button>
                                                         ) : ""
                                                     }
                                                     <Button size="sm" variant="outline-secondary"
                                                         onClick={() => props.onLayoutItemEdit(item)}>
-                                                        编辑
+                                                        <FontAwesomeIcon icon={faPenToSquare} color="dark" />
                                                     </Button>
                                                     <Button size="sm"
                                                         variant="outline-danger"
                                                         onClick={() => props.onLayoutItemDelete(item)}
                                                     >
-                                                        删除
+                                                        <FontAwesomeIcon icon={faTrashCan} color="dark" />
                                                     </Button>
                                                 </Card.Body>
                                             </Card>

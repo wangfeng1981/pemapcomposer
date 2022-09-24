@@ -1,0 +1,92 @@
+
+.rsbig-modal {
+    width: 664px  ;
+    height: 460px  ;
+    padding: 4px;
+    border-radius: 1px;
+    background-color: rgb(230, 234, 230);
+  }
+  
+  .rsbig-button {
+    width:80px;
+    height:30px;
+  }
+  
+  .rsbig-modal-content{
+    height:100% !important;
+    margin:0px !important;
+    padding:0px !important;
+    border: 0px;
+  }
+  
+  .rsbig-modal-content>:first-child:not(.icon){
+    width: 654px;
+    height: 30px;
+    background-color: #3597D1;
+    border-radius: 1px;
+    font-size: 16px;
+    color: #FFFFFF;
+    padding: 7px;
+  }
+  
+  .DialogSearchContainer{
+    width: 654px;
+    height: 38px;
+    background: rgba(72,160,211,0.20);
+    
+  }
+  
+  .DialogTitleSlash {
+    border-left: 4px #FFFFFF solid;
+    margin-left: 6px;
+    margin-right: 8px;
+  }
+  
+  
+  .DialogContent {
+    position: relative;
+    height: 342px;
+  }
+  
+  
+  .DialogFooter{
+    width: 654px;
+    height: 38px;
+    background: #FFFFFF;
+    box-shadow: 0px -2px 2px 0px rgba(71,160,210,0.3);
+    padding: 4px;
+  }
+  
+   .DialogContentTabContainer
+   {
+     width: 144px;
+     height:100%;
+     border-right: 1px #cfcfcf solid ;
+   }
+  
+   .DialogContentTabCell
+   {
+     width: 140px;
+     height: 36px;
+     margin-bottom: 2px;
+     background: #FFFFFF;
+     border: 1px solid #EAEAEA;
+     font-size: 12px;
+     padding: 12px;
+   }
+  
+   .DialogContentTabCell.Active {
+    background: #ECF7FF;
+    border: 1px solid #48A0D3;
+   }
+  
+   .DialogContentTabContent{
+    position: absolute;
+    top:0px;
+    left:146px;
+    width: 506px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+   }
+  

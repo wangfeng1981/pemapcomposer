@@ -14,6 +14,7 @@ import './panels.css';
 /// props.onExport
 /// props.onRefresh
 /// props.onAddVecLayer
+/// props.onAddRoiVecLayer
 /// props.onAddMap
 /// props.onAddLabel
 /// props.onAddRect
@@ -66,10 +67,15 @@ function McMainToolbarPanel(props) {
                     </Col>
 
 
-                    <Col md='3'  >
+                    <Col md='4'  >
                         <Button variant="outline-secondary" size="sm"
                         onClick={props.onAddVecLayer}>
                             <Image src="./images/mc/addvec.png" />添加矢量
+                        </Button>
+
+                        <Button variant="outline-secondary" size="sm"
+                        onClick={props.onAddRoiVecLayer}>
+                            <Image src="./images/mc/addvec.png" />ROI矢量
                         </Button>
 
                         <Button variant="outline-secondary" size="sm"
@@ -98,7 +104,7 @@ function McMainToolbarPanel(props) {
                             >箭头</Dropdown.Item> */}
                         </DropdownButton>
                     </Col>
-                    <Col md='3'>
+                    <Col md='2'>
                         <Button variant="outline-secondary" size="sm"
                         onClick={props.onAddNorth}
                         >

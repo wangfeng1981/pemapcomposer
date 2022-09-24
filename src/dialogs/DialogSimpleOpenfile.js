@@ -46,7 +46,6 @@ function DialogSimpleOpenfile(props) {
     }, [props.type, props.isOpen, props.uid]);
 
     const onUploadImage = function (ev) {
-        console.log("uploading image");
         ev.preventDefault();
         if (ev.target[0].files.length === 0) return;
         let formData = new FormData;
@@ -64,7 +63,6 @@ function DialogSimpleOpenfile(props) {
             .then((result) => {
                 if (result.state === 0) {
                     const relfilename = result.data;
-                    console.log(relfilename);
                     refreshFileList();
                 } else {
                     console.log(result);
@@ -76,7 +74,6 @@ function DialogSimpleOpenfile(props) {
 
 
     const onUploadVector = function (ev) {
-        console.log("uploading vector");
         ev.preventDefault();
         if (ev.target[0].files.length !== 4) return;
         let formData = new FormData;

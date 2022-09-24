@@ -3,6 +3,8 @@ import React ,{useState,useEffect} from 'react'
 import { Button, Card, Grid, Row, Col, Image , Form} from 'react-bootstrap';
 import './panels.css';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare,faTrashCan,faExpand,faCompress,faHand,faBan } from '@fortawesome/free-solid-svg-icons';
 
 
 
@@ -94,7 +96,7 @@ function LayerPanel(props) {
 			
 
 			{/* item container */}
-			<div className="PanelItemListContainer">
+			<div className="PanelItemListContainer1">
 				<DragDropContext onDragEnd={onDragEnd}>
 					<Droppable droppableId="droppable">
 						{(provided, snapshot) => (
@@ -115,7 +117,7 @@ function LayerPanel(props) {
 
 											>
 												<Card.Body>
-													<Card.Text>
+													<div>
 														<Row>
 															{
 																(item.type === 'vec') ? (
@@ -141,13 +143,13 @@ function LayerPanel(props) {
 															}
 															<Col>{item.name}</Col>
 														</Row>
-													</Card.Text>
+													</div>
 													{
 														(item.type === 'vec') ? (
 															<Button size="sm" variant="outline-secondary"
 																onClick={() =>
 																	props.onEditItem(item)}>
-																编辑
+																<FontAwesomeIcon icon={faPenToSquare} color="dark" />
 															</Button>
 														) : ""
 													}
@@ -156,7 +158,7 @@ function LayerPanel(props) {
 														onClick={() =>
 															props.onRemoveItem(item)}
 													>
-														删除
+														<FontAwesomeIcon icon={faTrashCan} color="dark" />
 													</Button>
 												</Card.Body>
 											</Card>

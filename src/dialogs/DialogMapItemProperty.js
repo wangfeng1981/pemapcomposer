@@ -8,7 +8,7 @@ import LayoutItemPropery from '../components/LayoutItemPropery';
 import MapGrid from '../components/MapGrid';
 import PolyStyle from '../components/PolyStyle';
 import LabelProperty from '../components/LabelProperty';
-
+import PeStyleProperty from '../components/PeStyleProperty';
 //onOk
 //onCancel
 //isOpen
@@ -126,6 +126,12 @@ function DialogMapItemProperty(props) {
         setCurrObject(newobj) ;
     }
 
+    const onChangePeStylePpt = function( newdata ){
+        let newobj = {...currObject} ;
+        newobj.data = newdata ;
+        setCurrObject(newobj);
+    }
+
 
     const renderContent = function () {
         return (
@@ -214,6 +220,16 @@ function DialogMapItemProperty(props) {
                                 ) ? (
                                     <LabelProperty theObject={currObject.data}
                                         onChange={onChangeLabel}
+                                    />
+                                ) : ""
+                            }
+                            {
+                                (currObject !== null &&
+                                    (currObject.layoutitem.loitype === 'pestylelegend')
+                                ) ? (
+                                    <PeStyleProperty 
+                                    theObject={currObject.data}
+                                    onChange={onChangePeStylePpt}
                                     />
                                 ) : ""
                             }

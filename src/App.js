@@ -1,13 +1,13 @@
 import logo from './logo.svg';
 import './App.css';
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect , useRef } from 'react'
 import * as ReactDOM from 'react-dom';
 import LayerPanel from './panels/LayerPanel';
 import MapItemPanel from './panels/MapItemPanel';
 import { Toast, Modal, Button } from 'react-bootstrap';
 import { Transition } from 'react-transition-group';
 import BoDialogSimple from './dialogs/BoDialogSimple';
-
+import DialogSelectRoiNoDraw from './dialogs/DialogSelectRoiNoDraw';
 
 import './panels/panels.css';
 
@@ -20,18 +20,34 @@ import DialogMapItemProperty from './dialogs/DialogMapItemProperty';
 import DialogLayerProperty from './dialogs/DialogLayerProperty';
 import DialogExport from './dialogs/DialogExport';
 
-
-
-global.g_version = "v0.1.0";
-global.g_version = "v0.1.1";//2022-4-25
-global.g_version = "v0.1.1tx";// 2022-4-25
-global.g_version = "v0.1.2";// 2022-4-26 map crs 
-global.g_version = "v0.1.2r-qh";//2022-4-26
-global.g_version = "v0.1.3r"; //2022-4-27 fix mapitem resize with grid
+// global.g_version = "v0.1.0";
+// global.g_version = "v0.1.1";//2022-4-25
+// global.g_version = "v0.1.1tx";// 2022-4-25
+// global.g_version = "v0.1.2";// 2022-4-26 map crs 
+// global.g_version = "v0.1.2r-qh";//2022-4-26
+// global.g_version = "v0.1.3r"; //2022-4-27 fix mapitem resize with grid
 // global.g_version = "v0.1.3r-qh";
 // global.g_version = "v0.1.4r-qh";
 // global.g_version = "v0.1.4r-tx";
-global.g_version = "v0.1.5.0"; //2022-5-31 style legend and map theme, commit
+// global.g_version = "v0.1.5.0"; //2022-5-31 style legend and map theme, commit
+// global.g_version = "v0.1.5.r"; //2022-6-9
+
+//左右侧边栏增加滚动条
+//global.g_version = "v0.1.6.0"; //2022-7-8
+//global.g_version = "v0.1.6.0-qh"; //2022-7-15
+//global.g_version = "v0.1.6.0-wx"; //2022-7-20
+
+//0.图层叠放次序 not start
+//0.地图元素叠放次序 not start
+//0.地图元素delete按键删除 not start
+//0.矢量可访问系统矢量 not start
+//0.Label增加对齐选项 not start
+//0.分开Qgis图例和pe图例，pe图例编辑，方向，box宽度，box高度，列数，字体，字色，边框  not start
+//0.地图内部移动后更新 not
+//0.zoom bug not
+global.g_version = "v1.0.0.4d"; //2022-9-14
+
+
 
 // API 样例 192.168.56.103:15911/
 // http://192.168.56.103:15980/omc_res/firefox.png 静态资源网址样例
@@ -52,8 +68,14 @@ global.g_staticRootUrl = "http://192.168.56.103:15980/";
 // global.g_omcApi =        "http://10.10.30.81:15911/";
 // global.g_staticRootUrl = "http://10.10.30.81:8180/" ;
 
+//卫星中心 wx
+// global.g_task17apiroot = "http://192.168.56.101:8180/api/pe/";
+// global.g_omcApi =        "http://192.168.56.101:15911/";
+// global.g_staticRootUrl = "http://192.168.56.101:8180/" ;
 
 
+//for component from peworkbench
+global.g_serverAPIRoot=global.g_task17apiroot;
 //A4 297x210mm x4     1188x840px  , dpi72 841x595
 //A4 Portait   x2.83  595x841px     dpi72 595x841 
 global.g_dpi72toCanvas = 1.4126; //水平 1.4126   垂直1.00
@@ -66,7 +88,8 @@ global.g_mm2dpi72 = 2.823650; // 1mm in qgis layout == 2.823650 pixels in dpi72 
 global.g_mapClipRectObject = null;
 global.g_mapInnerContentChanged = false;
 global.g_layoutItemArray = [] ;
-
+global.g_fabricCanvasH = null ;
+global.g_fabricCanvasV = null ;
 
 
 
@@ -74,7 +97,7 @@ global.g_layoutItemArray = [] ;
 
 function App() {
 	//每次zoomIn zoomOut extent的变化大小
-	const theZoomScale = 0.25;
+	const theZoomScale = 0.05;
 
 	const [projectQgsFile, setProjectQgsFile] = useState('');
 	const [fabricCanvasH, setFabricCanvasH] = useState(null);
@@ -99,7 +122,8 @@ function App() {
 	const [canvasHStyle, setCanvasHStyle] = useState({ display: "block" });
 	const [canvasVStyle, setCanvasVStyle] = useState({ display: "none" });
 	const [isDialogExportOpen, setIsDialogExportOpen] = useState(false);
-
+	const [currentInnerMovingMapUuid, setCurrentInnerMovingMapUuid] = useState("");
+	const [dialogSelectRoiNoDrawIsOpen, setDialogSelectRoiNoDrawIsOpen] = useState(false);
 
 	useEffect(() => {
 		/// 从当前Url中解析出file字段参数，作为服务器端的qgsfile，然后保存到this.state中
@@ -138,6 +162,12 @@ function App() {
 			regenerateProjectPartsAndRedrawCanvas();
 		}
 	}, [projectQgsFile])
+
+	useEffect(() => {
+		global.g_fabricCanvasH = fabricCanvasH ;
+		global.g_fabricCanvasV = fabricCanvasV ;
+	}, [fabricCanvasH,fabricCanvasV])
+	
 
 
 	/// 切换页面方向
@@ -230,10 +260,8 @@ function App() {
 	const helperFindLayoutItem = function (uuid) {
 		let retobj = null;
 		global.g_layoutItemArray.forEach(item => {
-			console.log("- " + item.layoutitem.uuid);
 			if (item.layoutitem.uuid === uuid) {
 				retobj = item;
-				console.log("match");
 			}
 		});
 		return retobj;
@@ -244,13 +272,13 @@ function App() {
 	const helperFindFabricObject = function (uuid1) {
 		let theObj1 = null;
 		if (global.g_pagedirection === 'h') {
-			fabricCanvasH.forEachObject(function (fobj1, index1) {
+			global.g_fabricCanvasH.forEachObject(function (fobj1, index1) {
 				if (fobj1.uuid === uuid1) {
 					theObj1 = fobj1;
 				}
 			});
 		} else {
-			fabricCanvasV.forEachObject(function (fobj1, index1) {
+			global.g_fabricCanvasV.forEachObject(function (fobj1, index1) {
 				if (fobj1.uuid === uuid1) {
 					theObj1 = fobj1;
 				}
@@ -262,15 +290,19 @@ function App() {
 
 
 
-	const onAddVecLayer = function () {
+	const onMTBAddVecLayer = function () {
 		setDialogOpenfileType(3);
 		setIsDialogOpenfileOpen(true);
+	}
+
+	const onMTBAddRoiVecLayer = function () {
+		//this is geojson from server
+		setDialogSelectRoiNoDrawIsOpen(true);
 	}
 
 
 	// 画布对象鼠标抬起事件 这类函数必须使用全局函数
 	const onFabricObjectMouseUp = function (ev) {
-		console.log("mouseup");
 		let newleft = ev.target.left * global.g_canvasPx2A4mm;
 		let newtop = ev.target.top * global.g_canvasPx2A4mm;
 		let theuuid = ev.target.uuid;
@@ -283,7 +315,6 @@ function App() {
 
 		if (action === 'drag' && theLayoutItem !== null) {
 			if (theLayoutItem.layoutitem.loitype === 'map' && theLayoutItem.grid.enabled === 1) {
-				//console.log("map adjust left/top")
 				const png_wid = ev.target.png_width;
 				const png_hei = ev.target.png_height;
 				const totalmapwid_mm = png_wid / global.g_mm2dpi72;
@@ -359,8 +390,8 @@ function App() {
 	// 清空画布，重新从projectjson读取数据，重新绘制画布
 	const redrawMapComposerCanvas = function (itemArray) {
 		//fabricCanvas
-		fabricCanvasH.clear();
-		fabricCanvasV.clear();
+		global.g_fabricCanvasH.clear();
+		global.g_fabricCanvasV.clear();
 
 		let itemcount = itemArray.length;
 		let oImgArray = [];
@@ -395,7 +426,7 @@ function App() {
 					oImg["lockRotation"] = true;
 					//考虑是否有网格，left、top需要额外补上网格的空间
 					if (item.grid.enabled === 1) {
-						//console.log("map adjust left/top")
+
 						const totalmapwid_mm = oImg.width / global.g_mm2dpi72;
 						const totalmaphei_mm = oImg.height / global.g_mm2dpi72;
 						const gridspacewid_mm = totalmapwid_mm - item.layoutitem.width;
@@ -404,7 +435,7 @@ function App() {
 						const newtop_mm = item.layoutitem.top - gridspacehei_mm / 2;
 						oImg.left = newleft_mm / global.g_canvasPx2A4mm;
 						oImg.top = newtop_mm / global.g_canvasPx2A4mm;
-						//console.log(item.layoutitem.left + "," + newleft_mm);
+
 					}
 				}
 				oImg['lockRotation'] = true;
@@ -414,22 +445,21 @@ function App() {
 
 				oImgArray.push(oImg);
 				if (itemcount === 0) {
-					console.log('refresh...');
 					for (let i = uuidFromBigZtoSmallZ.length - 1; i >= 0; --i) {
 
 						for (let j = 0; j < oImgArray.length; ++j) {
 							if (oImgArray[j].uuid === uuidFromBigZtoSmallZ[i]) {
 								if (global.g_pagedirection === 'h') {
-									fabricCanvasH.add(oImgArray[j]);
+									global.g_fabricCanvasH.add(oImgArray[j]);
 								}
 								else {
-									fabricCanvasV.add(oImgArray[j]);
+									global.g_fabricCanvasV.add(oImgArray[j]);
 								}
 							}
 						}
 					}
-					fabricCanvasH.requestRenderAll();
-					fabricCanvasV.requestRenderAll();
+					global.g_fabricCanvasH.requestRenderAll();
+					global.g_fabricCanvasV.requestRenderAll();
 				}
 			});
 
@@ -460,9 +490,6 @@ function App() {
 		fetch(url)  //GET
 			.then(response => response.json())
 			.then(result => {
-				console.log("proj-json-file:");
-				console.log(result);
-
 				setProjectObject(result);
 				if (result.page.dir !== global.g_pagedirection) {
 					helperChangePageDirection(result.page.dir);
@@ -494,7 +521,7 @@ function App() {
 	///////////////////////////////// main tool bar
 
 	const onMTBOpen = function () {
-		console.log("onMTBOpen");
+
 		setDialogOpenfileType(1);
 		setIsDialogOpenfileOpen(true);
 	}
@@ -633,10 +660,11 @@ function App() {
 					httpAddStyleLegend(stylefilename) ;
 				}
 			}else{
-				regenerateProjectPartsAndRedrawCanvas();
+				setErrorMsgArray([...errorMsgArray, result.message]);
+				//regenerateProjectPartsAndRedrawCanvas();
 			}
 		}).catch(err=> {
-			console.log(err) ;// 505 404 ... errors
+			setErrorMsgArray([...errorMsgArray, err]);
 		});
 	}
 
@@ -668,24 +696,42 @@ function App() {
 			}
 		}
 		if( typeof someStyleid === 'undefined' ) someStyleid = 0 ;
+		
+		if( someStyleid===0 ) return ;
+		const url1 = global.g_task17apiroot + "style/detail/"+someStyleid;
+		fetch(url1)  //GET
+		.then(response=>response.json())
+		.then(result => {
+			if( result.state===0 ){
+				const stylefilename = result.data.filename ;
+				if( stylefilename !== '' ){
+					httpAddStyleLegend(stylefilename) ;
+				}
+			}else{
+				setErrorMsgArray([...errorMsgArray, result.message]);
+			}
+		}).catch(err=> {
+			setErrorMsgArray([...errorMsgArray, err]);
+		});
+		
 
-		const mapitems = helperFindMapItems();
-		if (mapitems.length > 0) {
-			let jsondata = {};
-			jsondata.mapuuid = mapitems[0].layoutitem.uuid;
-			jsondata.file = projectQgsFile;
-			callOmcRpc("layout.addlegend", jsondata,
-				function (res) {
-					//good
-					if(someStyleid!==0) httpGetStyleDetail(someStyleid) ;
-					else regenerateProjectPartsAndRedrawCanvas();
-				},
-				function (err) {
-					setErrorMsgArray([...errorMsgArray, err]);
-				});
-		} else {
-			appendErrorMsg("没有地图元素，请先添加地图.");
-		}
+
+		// const mapitems = helperFindMapItems();
+		// if (mapitems.length > 0) {
+		// 	let jsondata = {};
+		// 	jsondata.mapuuid = mapitems[0].layoutitem.uuid;
+		// 	jsondata.file = projectQgsFile;
+		// 	callOmcRpc("layout.addlegend", jsondata,
+		// 		function (res) {
+		// 			//good
+					
+		// 		},
+		// 		function (err) {
+		// 			setErrorMsgArray([...errorMsgArray, err]);
+		// 		});
+		// } else {
+		// 	appendErrorMsg("没有地图元素，请先添加地图.");
+		// }
 	}
 
 	const onMTBAddImage = function () {
@@ -714,14 +760,14 @@ function App() {
 	//辅助函数 加锁或者解锁layout元素
 	const helperSetLockAllFabric = function (isLock) {
 		if (global.g_pagedirection === 'h') {
-			fabricCanvasH.forEachObject(function (fobj1, index1) {
+			global.g_fabricCanvasH.forEachObject(function (fobj1, index1) {
 				fobj1.lockMovementX = isLock;
 				fobj1.lockMovementY = isLock;
 				fobj1.lockScalingX = isLock;
 				fobj1.lockScalingY = isLock;
 			});
 		} else {
-			fabricCanvasV.forEachObject(function (fobj1, index1) {
+			global.g_fabricCanvasV.forEachObject(function (fobj1, index1) {
 				fobj1.lockMovementX = isLock;
 				fobj1.lockMovementY = isLock;
 				fobj1.lockScalingX = isLock;
@@ -734,27 +780,23 @@ function App() {
 
 	//鼠标抬起事件，当移动地图内部内容
 	const onMapItemInnerMouseupHandler = function (ev) {
-		console.log("new mouseup");
 		global.g_mapInnerContentChanged = true;
-
 		const map1 = ev.target;
 		const cp1 = map1.clipPath;
 		const rect1 = global.g_mapClipRectObject;
-
 		cp1.left = rect1.left + 2;
-		cp1.top = rect1.top + 2;
+		cp1.top =  rect1.top + 2;
 		map1.set('dirty', true);
-
+		httpUpdateMapExtent(map1.uuid);
 	}
 
 	//点击地图元素移动内部内容按钮
-	const onLayoutItemMapStartMoveInner = function (item) {
-		let map1 = helperFindFabricObject(item.layoutitem.uuid);
+	const onLayoutItemMapStartMoveInner = function (mapuuid) {
+		let map1 = helperFindFabricObject(mapuuid);
 		if (map1 === null) {
-			console.log("no find " + item.layoutitem.uuid);
+			console.log("no find " + mapuuid);
 			return;
 		}
-
 		var rect = new fabric.Rect({
 			left: map1.left - 2,
 			top: map1.top - 2,
@@ -767,9 +809,7 @@ function App() {
 			scaleX: global.g_dpi72toCanvas,
 			scaleY: global.g_dpi72toCanvas,
 		});
-
 		const oMapCenterPoint = map1.getCenterPoint();
-
 		var clipPath2 = new fabric.Rect({
 			left: rect.left + 2,
 			top: rect.top + 2,
@@ -779,77 +819,96 @@ function App() {
 			scaleX: global.g_dpi72toCanvas,
 			scaleY: global.g_dpi72toCanvas,
 		});
-
 		global.g_mapClipRectObject = rect;
-		if (global.g_pagedirection === 'h') fabricCanvasH.add(rect);
+		if (global.g_pagedirection === 'h') global.g_fabricCanvasH.add(rect);
 		else fabricCanvasV.add(rect);
 		map1.clipPath = clipPath2;
 		map1.__eventListeners['mouseup'] = [];
+		map1.on('deselected',  onMapEndMoveInner.current  );
 		map1.on("mouseup", onMapItemInnerMouseupHandler);
 		map1.set('dirty', true);
-		if (global.g_pagedirection === 'h') fabricCanvasH.setActiveObject(map1);
+		if (global.g_pagedirection === 'h') global.g_fabricCanvasH.setActiveObject(map1);
 		else fabricCanvasV.setActiveObject(map1);
-
-
 		helperSetLockAllFabric(true);
 		map1.lockMovementX = false;
 		map1.lockMovementY = false;
+		setCurrentInnerMovingMapUuid(mapuuid) ;
 	}
 
-	//点击地图元素停止移动内部内容按钮
-	const onLayoutItemMapEndMoveInner = function (item) {
+	//更新地图范围
+	const httpUpdateMapExtent = function(mapuuid) {
 		const leftr = global.g_mapClipRectObject.left;
-		const topr = global.g_mapClipRectObject.top;
-		if (global.g_pagedirection === 'h')
-			fabricCanvasH.remove(global.g_mapClipRectObject);
-		else fabricCanvasV.remove(global.g_mapClipRectObject);
-		global.g_mapClipRectObject = null;
-
-		let map1 = helperFindFabricObject(item.layoutitem.uuid);
+		const topr  = global.g_mapClipRectObject.top;
+		let map1    = helperFindFabricObject(mapuuid);
+		let mapitem = helperFindLayoutItem(mapuuid);
 		if (map1 === null) {
-			console.log("no find " + item.layoutitem.uuid);
+			console.log("no find " + mapuuid);
 			return;
 		}
 		const leftm = map1.left;
-		const topm = map1.top;
-		const extent1 = item.data.extent;
-
+		const topm =  map1.top;
+		const extent1 = mapitem.data.extent;
 		const widthPx = map1.width * global.g_dpi72toCanvas;
 		const widthll = extent1.xmax - extent1.xmin;
-
 		const dxll = (leftm - leftr) * widthll / widthPx;
-		const dyll = (topm - topr) * widthll / widthPx;
-
-		map1.__eventListeners['mouseup'] = [];
-		map1.on("mouseup", onFabricObjectMouseUp);
-
-		if (global.g_mapInnerContentChanged === false) {
-			helperSetLockAllFabric(false);
-			map1.clipPath = null;
-			return;
-		}
-		global.g_mapInnerContentChanged = false;
-
+		const dyll = (topm  - topr ) * widthll / widthPx;
+		let extent2 = {};
+		extent2.xmin = extent1.xmin - dxll;
+		extent2.xmax = extent1.xmax - dxll;
+		extent2.ymin = extent1.ymin + dyll;//Y方向坐标相对X是负的，所以这里使用+
+		extent2.ymax = extent1.ymax + dyll;
 		let jsondata = {};
 		jsondata.file = projectQgsFile;
-		jsondata.mapuuid = item.layoutitem.uuid;
-		jsondata.xmin = extent1.xmin - dxll;
-		jsondata.xmax = extent1.xmax - dxll;
-		jsondata.ymin = extent1.ymin + dyll;//Y方向坐标相对X是负的，所以这里使用+
-		jsondata.ymax = extent1.ymax + dyll;
-
-		callOmcRpc("map.setextent", jsondata,
+		jsondata.mapuuid = mapuuid;
+		jsondata.dpi = 72 ;
+		jsondata.xmin = extent2.xmin  ;
+		jsondata.xmax = extent2.xmax  ;
+		jsondata.ymin = extent2.ymin  ;
+		jsondata.ymax = extent2.ymax  ;
+		// here here map设置新的范围最好，重新生产缩略图，然后回调函数更新图片
+		callOmcRpc("map.setextentndraw", jsondata,
 			function (res) {
-				//ok
-				helperSetLockAllFabric(false);
-				map1.clipPath = null;
-				regenerateProjectPartsAndRedrawCanvas();
+				map1.setSrc( global.g_staticRootUrl + res.data.src, function(newimg1){
+					mapitem.data.extent=extent2;
+					map1.set({left:leftr+2,top:topr+2});
+					map1.set('dirty', true);
+					global.g_fabricCanvasH.requestRenderAll();
+					global.g_fabricCanvasV.requestRenderAll();
+				}) ;
+				
 			}, function (err) {
-				helperSetLockAllFabric(false);
 				appendErrorMsg(err);
-				map1.clipPath = null;
 			});
 	}
+
+
+
+	//点击地图元素停止移动内部内容按钮  
+	const onLayoutItemMapEndMoveInner = function(uuid){
+		let ev = {} ;
+		ev.target = {uuid:uuid} ;
+		onMapEndMoveInnerFunc(ev) ;
+	}
+
+	const onMapEndMoveInnerFunc = function (ev) {
+		const mapuuid = ev.target.uuid ;//ev.target is klass
+		if (global.g_pagedirection === 'h')
+			global.g_fabricCanvasH.remove(global.g_mapClipRectObject);
+		else global.g_fabricCanvasV.remove(global.g_mapClipRectObject);
+		global.g_mapClipRectObject = null;
+		let map1 = helperFindFabricObject(mapuuid);
+		if (map1 === null) {
+			console.log("no find " + mapuuid);
+			return;
+		}
+		helperSetLockAllFabric(false);
+		map1.clipPath = null;
+		map1.__eventListeners['deselected']=[];
+		map1.__eventListeners['mouseup'] = [];
+		global.g_mapInnerContentChanged = false;
+		setCurrentInnerMovingMapUuid("") ;
+	}
+	const onMapEndMoveInner = useRef(onMapEndMoveInnerFunc) ;
 
 
 	//点击按钮 layout元素编辑按钮
@@ -858,27 +917,27 @@ function App() {
 		setIsDlgMapItemPptOpen(true);
 	}
 
-	const onLayoutItemDelete = function (loitem) {
+	const deleteLayoutItemByUuid = function(uuid){
 		let jsondata = {};
 		jsondata.file = projectQgsFile;
-		jsondata.uuid = loitem.layoutitem.uuid;
-
+		jsondata.uuid = uuid;
 		callOmcRpc("layout.deleteitem", jsondata,
 			function (res) {
 				//ok 在fabric中删除对象，不用刷新界面
-				const tfaobj = helperFindFabricObject(loitem.layoutitem.uuid);
+				const tfaobj = helperFindFabricObject(uuid);
 				if (global.g_pagedirection === 'h')
-					fabricCanvasH.remove(tfaobj);
-				else fabricCanvasV.remove(tfaobj);
-
+					global.g_fabricCanvasH.remove(tfaobj);
+				else global.g_fabricCanvasV.remove(tfaobj);
 				//从layoutitem面板删除item
-				let newItemArr = layoutItemArray.filter(item1 => item1.layoutitem.uuid !== loitem.layoutitem.uuid);
+				let newItemArr = layoutItemArray.filter(item1 => item1.layoutitem.uuid !== uuid);
 				setLayoutItemArray(newItemArr);
-
 			}, function (err) {
 				appendErrorMsg(err);
 			});
+	}
 
+	const onLayoutItemDelete = function (loitem) {
+		deleteLayoutItemByUuid(loitem.layoutitem.uuid) ;
 	}
 
 
@@ -910,17 +969,11 @@ function App() {
 					setErrorMsgArray([...errorMsgArray, err]);
 				});
 		} else if (filetype === 3) {
-			let jsondata = {};
-			jsondata.file = projectQgsFile;
-			jsondata.vecname = nameOrEmpty;
-			jsondata.vecfile = relfilename;
-			callOmcRpc("project.addvec", jsondata, function (res) {
-				//good
-				regenerateProjectPartsAndRedrawCanvas();
-			},
-				function (err) {
-					setErrorMsgArray([...errorMsgArray, err]);
-				});
+			httpAddVecShpOrGeojsonToMap(
+				projectQgsFile,
+				nameOrEmpty,
+				relfilename
+			);
 		}
 		setIsDialogOpenfileOpen(false);
 	}
@@ -932,7 +985,20 @@ function App() {
 	// END //////////////////////////////////////////////
 
 
-
+	const httpAddVecShpOrGeojsonToMap = function(qgsfile,vecname,refShpOrGeojsonfilename){
+		let jsondata = {};
+			jsondata.file = qgsfile;
+			jsondata.vecname = vecname;
+			jsondata.vecfile = refShpOrGeojsonfilename;
+			callOmcRpc("project.addvec", jsondata, 
+			function (res) {
+				//good
+				regenerateProjectPartsAndRedrawCanvas();
+			},
+			function (err) {
+				setErrorMsgArray([...errorMsgArray, err]);
+			});
+	}
 
 
 
@@ -1088,7 +1154,42 @@ function App() {
 
 
 
+	const onHoriCanvasKeyUp=function(ev) {
+		if( typeof ev.keyCode !== 'undefined' && ev.keyCode===46){
+			//delete
+			const activeObjs = fabricCanvasH.getActiveObjects() ;
+			for(const obj1 of activeObjs){
+				deleteLayoutItemByUuid(obj1.uuid) ;
+			}
+		}
+	}
 
+	const onVertCanvasKeyUp=function(ev) {
+		if( typeof ev.keyCode !== 'undefined' && ev.keyCode===46){
+			//delete
+			const activeObjs = fabricCanvasV.getActiveObjects() ;
+			for(const obj1 of activeObjs){
+				deleteLayoutItemByUuid(obj1.uuid) ;
+			}
+		}
+	}
+
+
+	////////////////////////////////////////
+	
+	const onDialogSelectRoiNoDrawIsOpenOnOk = function(roi){
+		console.log("debug 2 add vec from roi.") ;
+		console.log(roi) ;
+		httpAddVecShpOrGeojsonToMap(
+			projectQgsFile,
+			roi.name ,
+			roi.geojson 
+			);
+		setDialogSelectRoiNoDrawIsOpen(false);
+	}
+	const onDialogSelectRoiNoDrawIsOpenOnCancel = function(){
+		setDialogSelectRoiNoDrawIsOpen(false);
+	}
 
 
 	//
@@ -1101,7 +1202,8 @@ function App() {
 				{/* 顶部工具栏 */}
 				<McMainToolbarPanel
 					onOpen={onMTBOpen}
-					onAddVecLayer={onAddVecLayer}
+					onAddVecLayer={onMTBAddVecLayer}
+					onAddRoiVecLayer={onMTBAddRoiVecLayer}
 					onAddRect={onMTBAddRect}
 					onExport={onMTBExport}
 					onRefresh={onMTBRefresh}
@@ -1141,7 +1243,7 @@ function App() {
 						onMapItemDisableInner={onLayoutItemMapEndMoveInner}
 						onMapItemZoomIn={onMapItemZoomIn}
 						onMapItemZoomOut={onMapItemZoomOut}
-
+						currentInnerMovingMapUuid={currentInnerMovingMapUuid}
 					/>
 
 
@@ -1151,14 +1253,19 @@ function App() {
 					>
 						<div className="AppCanvasContainerInnerHori"
 							style={canvasHStyle}
+							onKeyUp={onHoriCanvasKeyUp}
+							tabIndex="0"
 						>
-							<canvas id="fabricCanvasH" width={1188} height={840}></canvas>
+							<canvas id="fabricCanvasH" width={1188} height={840} ></canvas>
 						</div>
 
 						<div className="AppCanvasContainerInnerVert"
 							style={canvasVStyle}
+							onKeyUp={onVertCanvasKeyUp}
+							tabIndex="0"
 						>
-							<canvas id="fabricCanvasV" width={595} height={841}></canvas>
+							<canvas id="fabricCanvasV" width={595} height={841} 
+							></canvas>
 						</div>
 					</div>
 
@@ -1234,7 +1341,18 @@ function App() {
 				callOmcRpc={callOmcRpc}
 				appendErrorMsg={appendErrorMsg}
 			/>
+
+			{/* 系统感兴趣区 */}
+			<DialogSelectRoiNoDraw
+			isOpen={dialogSelectRoiNoDrawIsOpen}
+			onOk={onDialogSelectRoiNoDrawIsOpenOnOk}
+			onCancel={onDialogSelectRoiNoDrawIsOpenOnCancel}
+			uid={theUid}
+			/>
+
 		</div>
+
+
 	);
 }
 

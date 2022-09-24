@@ -14,7 +14,8 @@
     top:0px;
     background-color: #F1F2F3;
     width: 300px;
-    height:calc(100vh - 68px);
+    bottom: 0px;
+    /* height:calc(100vh - 68px); */
     border: 1px solid #CFD0D1 ;
 
 }
@@ -22,10 +23,12 @@
 
 .VerticalPanelDiv2{
     position: absolute;
+    top:0px;
     right: 0px;
     background-color: #F1F2F3;
     width: 300px;
-    height:calc(100vh - 68px);
+    bottom:0px;
+    /* height:calc(100vh - 68px); */
     border: 1px solid #CFD0D1 ;
 }
 
@@ -37,7 +40,20 @@
     font-size: 15px;
 }
 
-.PanelItemListContainer {
+.PanelItemListContainer1 {
+    position: absolute;
+    top: 82px;
+    bottom: 0px;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.PanelItemListContainer2 {
+    position: absolute;
+    top: 32px;
+    bottom: 0px;
+    width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
 }

@@ -52,6 +52,13 @@ function FontStyle(props) {
         props.onChange(newobj) ;
     }
 
+    const onAlignChanged = function(ev){
+        let newobj = {...currObject};
+        newobj.align = ev.target.value;
+        setCurrObject(newobj) ;
+        props.onChange(newobj);
+    }
+
 
 
     // hex #ffffff
@@ -85,6 +92,16 @@ function FontStyle(props) {
             {
                 (typeof currObject === 'undefined') ? "" : (
                     <tbody>
+                        <tr>
+                            <td>对齐</td>
+                            <td>
+                                <Form.Select onChange={onAlignChanged} value={currObject.align}>
+                                    <option value='left'>左对齐</option>
+                                    <option value='center'>居中</option>
+                                    <option value='right'>右对齐</option>
+                                </Form.Select>
+                            </td>
+                        </tr>
                         <tr>
                             <td>加粗</td>
                             <td>
